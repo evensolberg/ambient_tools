@@ -1,4 +1,4 @@
-use clap::{parser, Arg, Command}; // Command line
+use clap::{Arg, Command}; // Command line
 
 pub fn build_cli() -> Command {
     Command::new(clap::crate_name!())
@@ -6,38 +6,17 @@ pub fn build_cli() -> Command {
         .version(clap::crate_version!())
         .author(clap::crate_authors!("\n"))
         .long_about("Download weather data from Ambient Weather API.")
-        .arg( // Print summary information
-            Arg::new("print-summary")
-                .short('p')
-                .long("print-summary")
-                .help("Print summary detail for each session processed.")
-                .num_args(0)
-                .action(clap::ArgAction::SetTrue)
-        )
-        .arg( // Show debug information
-            Arg::new("debug")
+        .arg( // Output detail level
+            Arg::new("detail")
                 .short('d')
-                .long("debug")
-                .help("Show debug information.")
-                .num_args(0)
-                .action(clap::ArgAction::Count)
-                .hide(true)
-        )
-        .arg( // Show detail information
-            Arg::new("show-detail")
-                .short('i')
-                .long("show-detail")
-                .help("Show detailed information about each item processed.")
-                .num_args(0)
-                .action(clap::ArgAction::SetTrue)
-        )
-        .arg( // Don't show information other than warnings and errors
-            Arg::new("quiet")
-                .short('q')
-                .long("quiet")
-                .help("Don't print anything to the console.")
-                .num_args(0)
-                .action(clap::ArgAction::SetTrue)
+                .long("detail-level")
+                .help("Output detail level")
+                .long_help("Output detail level. 0=Quiet, 1=Normal, 2=Detailed, 3=Debug, 4=Trace.")
+                .num_args(1)
+                .action(clap::ArgAction::Set)
+                .env("AMBIENT_WEATHER_DETAIL_LEVEL")
+                .default_value("1")
+                .value_parser(clap::value_parser!(u8).range(..=4))
         )
         .arg( // API Key
             Arg::new("api-key")
@@ -63,15 +42,16 @@ pub fn build_cli() -> Command {
         )
         .arg( // Output folder
             Arg::new("output-folder")
-            .short('f')
+            .short('o')
             .long("output-folder")
             .help("The folder into which the output files are to be written.")
             .long_help("The folder into which the output files are to be written. Default is the current folder if not specified.")
             .action(clap::ArgAction::Set)
+            .env("AMBIENT_WEATHER_OUTPUT_FOLDER")
             .default_value(".")
         )
         .subcommand(Command::new("device")
-            .about("Download device information."))
+            .about("Download device information.")
             .arg( // Device info JSON filename
                 Arg::new("device-info-filename")
                 .short('f')
@@ -82,6 +62,7 @@ pub fn build_cli() -> Command {
                 .default_missing_value("device-info.json")
                 .action(clap::ArgAction::Set)
             )
+        )
         .subcommand(Command::new("weather")
             .about("Download weather information.")
             .arg( // MAC Address
@@ -132,5 +113,6 @@ pub fn build_cli() -> Command {
                     .action(clap::ArgAction::Set)
                     .env("AMBIENT_WEATHER_TZ_OFFSET")
                     .conflicts_with("time-zone")
-            ))
+            )
+        )
 }

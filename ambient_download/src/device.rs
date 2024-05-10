@@ -2,11 +2,11 @@
 
 use std::io::Write;
 
-use crate::creds::Query;
-use reqwest::Error;
+use crate::{creds::Query, detail::DetailLevel};
+use std::error::Error;
 
 /// Get the device information.
-pub async fn download_device_info(creds: &Query) -> Result<String, Error> {
+pub async fn download_device_info(creds: &Query) -> Result<String, Box<dyn Error>> {
     let url = format!(
         "https://rt.ambientweather.net/v1/devices?applicationKey={}&apiKey={}",
         creds.app_key, creds.api_key
@@ -21,20 +21,7 @@ pub async fn download_device_info(creds: &Query) -> Result<String, Error> {
     log::debug!("resp = {resp:?}");
 
     let res = resp.text().await?;
-    log::debug!("res = {res:?}",);
-
-    Ok(res)
-}
-
-/// Write the information to a JSON file
-pub fn write_device_info_to_file(
-    filename: &str,
-    device_info: &str,
-) -> Result<usize, std::io::Error> {
-    let mut file = std::fs::File::create(filename)?;
-    let res = file.write(device_info.as_bytes())?;
-
-    log::debug!("Wrote {res} bytes to {filename}.");
+    log::debug!("res = {res:?}");
 
     Ok(res)
 }
@@ -43,14 +30,15 @@ pub fn write_device_info_to_file(
 pub async fn get_device_info(
     creds: &Query,
     filename: &str,
-    print_summary: bool,
+    detail_level: DetailLevel,
 ) -> Result<usize, Box<dyn std::error::Error>> {
     let device_info = download_device_info(creds).await?;
 
-    if print_summary {
-        println!("{device_info}");
+    if detail_level > DetailLevel::Normal {
+        log::info!("{device_info}");
     }
 
-    let bytes_written = write_device_info_to_file(filename, &device_info)?;
+    let mut file = std::fs::File::create(filename)?;
+    let bytes_written = file.write(device_info.as_bytes())?;
     Ok(bytes_written)
 }

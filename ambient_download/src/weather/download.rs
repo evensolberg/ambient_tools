@@ -54,8 +54,8 @@ pub fn write_weather_info_to_file(
     weather_info: &str,
 ) -> Result<usize, std::io::Error> {
     let mut file = std::fs::File::create(filename)?;
-    let res = file.write(weather_info.as_bytes())?;
 
+    let res = file.write(weather_info.as_bytes())?;
     log::debug!("Wrote {res} bytes to {filename}.");
 
     Ok(res)
