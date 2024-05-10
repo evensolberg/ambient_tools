@@ -1,9 +1,11 @@
 mod cli;
 mod creds;
+mod detail;
 mod device;
 mod query;
 mod weather;
 
+use crate::detail::DetailLevel;
 use crate::query::QueryType;
 use crate::weather::download;
 
@@ -23,54 +25,52 @@ async fn run() -> Result<(), Box<dyn Error>> {
     // create a log builder
     let mut logbuilder = Builder::new();
 
-    // Figure out what log level to use.
-    if cli_args.get_flag("quiet") {
-        logbuilder.filter_level(LevelFilter::Off);
-    } else {
-        match cli_args.get_count("debug") {
-            0 => logbuilder.filter_level(LevelFilter::Info),
-            1 => logbuilder.filter_level(LevelFilter::Debug),
-            _ => logbuilder.filter_level(LevelFilter::Trace),
-        };
+    let detail_level = DetailLevel::from_count(*cli_args.get_one::<u8>("detail").unwrap_or(&1));
+    match detail_level {
+        DetailLevel::Quiet => {
+            logbuilder.filter_level(LevelFilter::Off);
+        }
+        DetailLevel::Normal | DetailLevel::Detailed => {
+            logbuilder.filter_level(LevelFilter::Info);
+        }
+        DetailLevel::Debug => {
+            logbuilder.filter_level(LevelFilter::Debug);
+        }
+        DetailLevel::Trace => {
+            logbuilder.filter_level(LevelFilter::Trace);
+        }
     }
 
     // Initialize logging
     logbuilder.target(Target::Stdout).init();
 
+    let output_folder = get_output_folder(&cli_args)?;
+
     // Output the command line arguments
     log::debug!("Command line arguments: {cli_args:?}");
-
-    let print_summary = cli_args.get_flag("print-summary");
-    let mut quiet = cli_args.get_flag("quiet");
-    let mut show_detail = cli_args.get_flag("show-detail");
 
     let creds = creds::Query::from_cli(&cli_args);
     log::debug!("{creds:?}");
 
-    let query_type = query::QueryType::from_cli(&cli_args);
-    log::debug!("{query_type:?}");
-
-    match query_type {
+    match query::QueryType::from_cli(&cli_args) {
         QueryType::GetDeviceInfo => {
-            if print_summary {
-                show_detail = false;
-                quiet = true;
-            }
             let info_file_default = String::from("device-info.json");
-            let dev_info_file = cli_args
+            let dev_info_file_name = cli_args
                 .get_one::<String>("device-info-filename")
                 .unwrap_or(&info_file_default);
-            if show_detail && !quiet {
+            if detail_level > DetailLevel::Quiet {
                 log::info!("Getting device information.");
             }
+
+            let full_path = format!("{output_folder}/{dev_info_file_name}");
             let bytes_written =
-                crate::device::get_device_info(&creds, dev_info_file, print_summary).await?;
-            if show_detail && !quiet {
-                log::info!("Wrote {bytes_written} bytes to {dev_info_file}.");
+                crate::device::get_device_info(&creds, &full_path, detail_level).await?;
+            if detail_level > DetailLevel::Quiet {
+                log::info!("Wrote {bytes_written} bytes to {full_path}.");
             }
         }
         QueryType::GetWeather => {
-            if show_detail && !quiet {
+            if detail_level > DetailLevel::Quiet {
                 log::info!("Getting weather information.");
             }
 
@@ -88,16 +88,17 @@ async fn run() -> Result<(), Box<dyn Error>> {
             log::debug!("dates = {dates:?}.");
 
             if dates.is_empty() {
-                if show_detail && !quiet {
+                if detail_level > DetailLevel::Quiet {
                     log::info!("No dates provided. Getting yesterday's weather information.");
                 }
 
                 let info = download::download_yesterdays_weather(&creds).await?;
                 let filename = download::get_yesterdays_weather_filename()?;
-                let bytes_written = download::write_weather_info_to_file(&filename, &info)?;
+                let full_path = format!("{output_folder}/{filename}");
+                let bytes_written = download::write_weather_info_to_file(&full_path, &info)?;
 
-                if show_detail && !quiet {
-                    log::info!("Wrote {bytes_written} bytes to {filename}.");
+                if detail_level > DetailLevel::Quiet {
+                    log::info!("Wrote {bytes_written} bytes to {full_path}.");
                 }
             }
         }
@@ -122,4 +123,18 @@ async fn main() {
             1 // exit with a non-zero return code, indicating a problem
         }
     });
+}
+
+/// Gets the name of the output folder from the CLI arguments.
+/// Checks if the folder exists, and if it doesn't atttempt to create it.
+fn get_output_folder(cli_args: &clap::ArgMatches) -> Result<String, std::io::Error> {
+    let current_folder = String::from(".");
+    let output_folder = cli_args
+        .get_one::<String>("output-folder")
+        .unwrap_or(&current_folder)
+        .to_owned();
+    if !std::path::Path::new(&output_folder).exists() {
+        std::fs::create_dir_all(&output_folder)?;
+    }
+    Ok(output_folder)
 }

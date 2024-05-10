@@ -2,3 +2,10 @@
 members = [
     "ambient_download",
 ]
+
+resolver = "2"
+
+
+
+[profile.release]
+strip = true
