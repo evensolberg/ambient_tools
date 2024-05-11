@@ -1,11 +1,9 @@
 [workspace]
 members = [
-    "ambient_download",
+    "ambient_download", "tz_detect",
 ]
 
 resolver = "2"
-
-
 
 [profile.release]
 strip = true
