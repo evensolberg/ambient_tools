@@ -70,6 +70,7 @@ alias tp := testp
 @release: format changelog
     cargo lbuild --release  --color 'always'
     -cp {{invocation_directory()}}/target/release/{{application}} /usr/local/bin/
+    -cp {{invocation_directory()}}/target/release/tz_detect /usr/local/bin/
     cargo clean
 
 # Documents the project, builds and installs the release version, and cleans up

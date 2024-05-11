@@ -4,12 +4,6 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
-### Feat
-
-- Read settings from config file
-
-## [0.4.0] - 2024-05-11
-
 ### Doc
 
 - Changelog Update

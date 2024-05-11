@@ -50,6 +50,17 @@ pub fn build_cli() -> Command {
             .env("AMBIENT_WEATHER_OUTPUT_FOLDER")
             .default_value(".")
         )
+        .arg( // Output folder
+            Arg::new("config-file")
+            .short('c')
+            .long("config-file")
+            .help("The configuration file to use.")
+            .long_help("The configuration file in TOML format to use. If not provided, the values are read from the command line.")
+            .action(clap::ArgAction::Set)
+            // .env("AMBIENT_WEATHER_CONFIG_FILE")
+            // .default_value("ambient_download.toml")
+            // .conflicts_with_all(["detail", "api-key", "app-key", "output-folder"])
+        )
         .subcommand(Command::new("device")
             .about("Download device information.")
             .arg( // Device info JSON filename
