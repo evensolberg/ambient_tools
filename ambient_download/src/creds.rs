@@ -3,6 +3,7 @@
 use chrono::{DateTime, FixedOffset, Local};
 use std::{error::Error, str::FromStr};
 
+use crate::config;
 use crate::query::{self, QueryType};
 
 /// A struct to hold the credentials needed to authenticate with the Ambient Weater API and
@@ -176,6 +177,19 @@ impl Query {
             tz_offset: weather_args
                 .get_one::<String>("tz-offset")
                 .map(|tz| FixedOffset::from_str(tz).expect("Unable to parse timezone offset.")),
+        }
+    }
+
+    /// Get the credentials from the configuration file.
+    pub fn from_config(config: &config::Config) -> Self {
+        Self {
+            query_type: QueryType::Help,
+            api_key: config.api_key.clone(),
+            app_key: config.app_key.clone(),
+            mac_address: Some(config.mac_address.clone()),
+            end_date: None,
+            limit: Some(config.limit),
+            tz_offset: None,
         }
     }
 }

@@ -1,0 +1,7 @@
+api_key = "cd77a86c2809445ea560f4a5f2f6903d2fbc755f90e34f3c91c50020746a981a"
+app_key = "e41f4445f3f54def8f7a49d113e7f70e7afc00963ee4463a97345d70d82a8fef"
+mac_address = "C4:5B:BE:5F:08:EE"
+tz_offset = "-07:00"
+output_folder = "weather_data"
+detail_level = 1  # 0=Quiet, 1=Normal, 2=Detailed, 3=Debug, 4=Trace.
+limit = 288       # Number of data points to retrieve. 288 = 1 day of data at 5 minute intervals.

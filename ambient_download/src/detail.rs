@@ -11,9 +11,9 @@ pub enum DetailLevel {
 }
 
 impl DetailLevel {
-    /// Returns the detail level from the given count.
-    pub fn from_count(count: u8) -> Self {
-        match count {
+    /// Returns the detail level from the given number.
+    pub fn from_number(number: u8) -> Self {
+        match number {
             0 => DetailLevel::Quiet,
             1 => DetailLevel::Normal,
             2 => DetailLevel::Detailed,
