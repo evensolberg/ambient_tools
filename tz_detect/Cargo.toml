@@ -1,13 +1,14 @@
 [package]
 name = "tz_detect"
-version = "0.1.0"
+version = "0.3.0"
 edition = "2021"
 authors = ["Even Solberg <even.solberg@gmail.com>"]
-description = "Detect the timezone of a user based on OS settings."
+description = "Output the local and UTC time, the local offset, the local timezone offset, and the local timezone name."
 license = "MIT"
 
 [dependencies]
 chrono = { version = "0.4.38", features = ["serde"] }
+clap = { version = "4.5.4", features = ["derive"] }
 iana-time-zone = "0.1.60"
-quote = { version = "1.0.36" }
 serde = { version = "1.0.199", features = ["derive"] }
+toml = { version = "0.8.12", features = ["parse"] }

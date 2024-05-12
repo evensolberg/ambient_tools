@@ -1,0 +1,7 @@
+app_key = ""
+api_key = ""
+mac_address = ""
+output_folder = "weather_data"
+tz_offset = "-07:00"
+detail_level = 1
+limit = 288

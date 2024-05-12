@@ -27,7 +27,6 @@ pub fn build_cli() -> Command {
             .num_args(0)
             .action(clap::ArgAction::Set)
             .env("AMBIENT_WEATHER_API_KEY")
-            .required(true)
         )
         .arg( // Application Key
             Arg::new("app-key")
@@ -38,7 +37,6 @@ pub fn build_cli() -> Command {
             .num_args(0)
             .action(clap::ArgAction::Set)
             .env("AMBIENT_WEATHER_APP_KEY")
-            .required(true)
         )
         .arg( // Output folder
             Arg::new("output-folder")
@@ -85,7 +83,7 @@ pub fn build_cli() -> Command {
                 .num_args(0)
                 .action(clap::ArgAction::Set)
                 .env("AMBIENT_WEATHER_MAC_ADDRESS")
-                .required(true)
+                .required(false)
             )
             .arg( // End date
                 Arg::new("end-dates")
