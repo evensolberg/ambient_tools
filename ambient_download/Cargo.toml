@@ -7,7 +7,7 @@ edition.workspace = true
 
 [dependencies]
 chrono.workspace = true
-clap.workspace = true
+clap = { version = "4.5.4", features = ["cargo", "derive", "env", "wrap_help"] }
 env_logger = "0.11.3"
 futures = "0.3" # for our async / await blocks
 log.workspace = true
@@ -18,3 +18,6 @@ shellexpand = "3.1.0"
 syn = { version = "2.0.60", features = ["full", "visit"] }
 tokio = { version = "1.12.0", features = ["full"] } # for our async runtime
 toml.workspace = true
+
+[package.metadata.hackerman.stash.dependencies]
+clap.workspace = true
