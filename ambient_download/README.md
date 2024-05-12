@@ -2,7 +2,22 @@
 
 Download data from the Ambient Weather API.
 
-This directory contains the main application for downloading data from the Ambient Weather API. The application is written in Rust and is intended to be run as a cron job to periodically download data from the API.
+This directory contains the main application for downloading data from the Ambient Weather API. The application is intended to be run as a cron job to periodically download data from the API.
+
+## Prerequisites
+
+To use the Ambient Download application, you will need the following:
+
+- An Ambient Weather API key. You can obtain an API key and and Application by signing up for an account at [Ambient Weather](https://ambientweather.net/).
+  - For more information, refer to: <https://ambientweather.com/faqs/question/view/id/1834/>
+- The MAC address of the Ambient Weather device from which you want to download data. You can find the MAC address on the device itself or in the Ambient Weather dashboard.
+  - Or, after getting the API and Application keys, you can just run the `ambient_download` application with the `device` command to get the MAC address.
+- The time zone offset from UTC. For example, Pacific Daylight Time is `-07:00`. You can get this with the `tz_detect` utility in this package.
+- The output folder where the downloaded data will be written. The default is the current folder.
+
+## Installation
+
+
 
 ## Usage
 
@@ -126,3 +141,35 @@ The Ambient Download application supports the following environment variables:
 - `AMBIENT_WEATHER_TIMEZONE`: The time zone name. Default is "UTC". *Not currently used.*
 - `AMBIENT_WEATHER_OUTPUT_FOLDER`: The folder into which the output files are to be written. Default is the current folder if not specified.
 - `AMBIENT_WEATHER_DETAIL_LEVEL`: Output detail level. *0=Quiet*, *1=Normal*, *2=Detailed*, *3=Debug*, *4=Trace*.
+
+### Scheduking
+
+To run the Ambient Download application as a cron job, the easiest thing to do is likely to create a TOML file containing your settings, and then calling the application with the `--config` option. For example, use the `tz_detect` utility in this package to create a file named `ambient_download.toml` with the following content:
+
+```shell
+tz_detect -c /path/to/ambient_download.toml
+```
+
+This will produce an empty TOML file with the following content:
+
+```toml
+app_key = ""
+api_key = ""
+mac_address = ""
+output_folder = ""
+tz_offset = "<your time zone offset>"
+detail_level = 1
+limit = 288
+```
+
+You will need to fill in the blanks with your API key, application key, MAC address, and output folder.
+
+Then, create a [cron job](https://www.adminschoice.com/crontab-quick-reference) to run the application at the desired interval. For example, to run the application at 1 AM to download yesterday's data, add the following line to your crontab:
+
+```text
+0 1 * * * /path/to/ambient_download --config-file /path/to/ambient_download.toml weather
+```
+
+This will run the application at 1 AM every day, downloading yesterday's data and writing it to the specified output folder.
+
+In Windows, you can use the [Task Scheduler](https://learn.microsoft.com/en-us/windows/win32/taskschd/about-the-task-scheduler) to run the application at the desired interval.

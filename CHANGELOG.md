@@ -2,11 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
-## [unreleased]
+## [0.4.1] - 2024-05-11
 
 ### Feat
 
 - Read settings from config file
+- Added tz_detect
 
 ## [0.4.0] - 2024-05-11
 

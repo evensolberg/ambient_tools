@@ -18,3 +18,4 @@ Cargo.lock
 # Downloaded information
 weather_data/
 .mise.toml
+ambient_download.toml
