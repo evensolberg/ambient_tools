@@ -1,9 +1,26 @@
 [workspace]
 members = [
-    "ambient_download", "tz_detect",
+    "ambient_download",
+    "tz_detect",
 ]
-
 resolver = "2"
+
+[workspace.package]
+name = "Ambient Tools"
+version = "0.2.0"
+edition = "2021"
+authors = ["Even Solberg <even.solberg@gmail.com>"]
+readme = "README.md"
+description = "Tools for downloading data from the Ambient Weather API and detecting the timezone of a location."
+repository = "https://github.com/evensolberg/ambient_tools"
+homepage = "https://github.com/evensolberg/ambient_tools"
+
+[workspace.dependencies]
+chrono = { version = "0.4.38", features = ["serde"] }
+clap = { version = "4.5.4", features = ["cargo", "env", "wrap_help"] }
+log = "0.4.21"
+toml = "0.8.12"
+
 
 [profile.release]
 strip = true
