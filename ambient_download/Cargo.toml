@@ -1,6 +1,6 @@
 [package]
 name = "ambient_download"
-version = "0.4.1"
+version = "0.4.2"
 description = "Download Ambient Weather data in JSON format."
 authors.workspace = true
 edition.workspace = true
@@ -12,12 +12,13 @@ env_logger = "0.11.3"
 futures = "0.3" # for our async / await blocks
 log.workspace = true
 reqwest = { version = "0.12.4", features = ["json"] } # reqwest with JSON parsing support
-serde = { version = "1.0.130", features = ["derive"] } # for JSON serialization
+serde.workspace = true
 serde_json = "1.0.68" # for JSON parsing
 shellexpand = "3.1.0"
 syn = { version = "2.0.60", features = ["full", "visit"] }
 tokio = { version = "1.12.0", features = ["full"] } # for our async runtime
 toml.workspace = true
+shared = { path = "../shared" }
 
 [package.metadata.hackerman.stash.dependencies]
 clap.workspace = true

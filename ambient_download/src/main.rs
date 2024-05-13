@@ -1,10 +1,11 @@
 mod cli;
-mod config;
 mod creds;
 mod detail;
 mod device;
 mod query;
 mod weather;
+
+use shared::config;
 
 use crate::detail::DetailLevel::{self, *};
 use crate::device::get_device_info;

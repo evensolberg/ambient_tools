@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [unreleased]
+
+### Chore
+
+- Delete ambient_download.toml
+
+### Feat
+
+- Create a blank config file
+
+### Refactor
+
+- Cargo.toml update
+- Cargo.toml update
+
 ## [0.4.1] - 2024-05-11
 
 ### Feat
