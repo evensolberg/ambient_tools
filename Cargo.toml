@@ -1,13 +1,13 @@
 [workspace]
 members = [
-    "ambient_download",
+    "ambient_download", "shared",
     "tz_detect",
 ]
 resolver = "2"
 
 [workspace.package]
 name = "Ambient Tools"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 authors = ["Even Solberg <even.solberg@gmail.com>"]
 readme = "README.md"
@@ -19,8 +19,9 @@ homepage = "https://github.com/evensolberg/ambient_tools"
 chrono = { version = "0.4.38", features = ["serde"] }
 clap = { version = "4.5.4", features = ["cargo", "env", "wrap_help"] }
 log = "0.4.21"
+serde = { version = "1.0.130", features = ["derive"] } # for JSON serialization
 toml = "0.8.12"
-
+shared = { path = "../shared" }
 
 [profile.release]
 strip = true
