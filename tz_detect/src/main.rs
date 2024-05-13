@@ -33,11 +33,9 @@ fn main() {
     }
 
     if let Some(config_file) = cli.config_file {
-        // Check if the configuration file exists. If it doesn't, create a new one.
-
-        // Read the toml file and update the offset information. Then write the updated information back to the file.
-        let mut config =
-            Config::from_file(&config_file).expect("Unable to parse configuration file.");
+        // Update the TOML file with the offset information.
+        // If there is no file, create a new one with the offset information.
+        let mut config = Config::from_file(&config_file).unwrap_or_default();
         config.tz_offset = tz_offset;
         config
             .to_file(&config_file)

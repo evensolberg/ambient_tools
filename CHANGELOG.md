@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - Delete ambient_download.toml
 
+### Doc
+
+- Changelog update
+
 ### Feat
 
 - Create a blank config file
