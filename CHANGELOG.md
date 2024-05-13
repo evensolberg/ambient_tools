@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file.
 
 - Cargo.toml update
 - Cargo.toml update
+- Move config to new Shared crate
 
 ## [0.4.1] - 2024-05-11
 

@@ -7,7 +7,7 @@ resolver = "2"
 
 [workspace.package]
 name = "Ambient Tools"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 authors = ["Even Solberg <even.solberg@gmail.com>"]
 readme = "README.md"
