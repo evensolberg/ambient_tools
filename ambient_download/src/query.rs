@@ -7,6 +7,9 @@ pub enum QueryType {
     /// Get the weather information.
     GetWeather,
 
+    /// Output the local time zone information
+    GetTimezone,
+
     /// Print the help message.
     #[default]
     Help,
@@ -18,6 +21,7 @@ impl QueryType {
         match cli_args.subcommand_name() {
             Some("device") => Self::GetDeviceInfo,
             Some("weather") => Self::GetWeather,
+            Some("timezone") => Self::GetTimezone,
             _ => Self::Help,
         }
     }

@@ -16,6 +16,10 @@ All notable changes to this project will be documented in this file.
 
 - Create a blank config file
 
+### Fix
+
+- Tz_detect create new blank config if not found
+
 ### Refactor
 
 - Cargo.toml update

@@ -85,12 +85,18 @@ impl Config {
             .get_one::<String>("app-key")
             .unwrap_or(&empty_string)
             .to_string();
-        config.mac_address = cli_args
-            .get_one::<String>("mac-address")
-            .unwrap_or(&empty_string)
-            .to_string();
+
+        if let Some(weather_args) = cli_args.subcommand_matches("weather") {
+            config.mac_address = weather_args
+                .get_one::<String>("mac-address")
+                .unwrap_or(&empty_string)
+                .to_string();
+        } else {
+            config.mac_address.clone_from(&empty_string);
+        }
+
         config.output_folder = cli_args
-            .get_one::<String>("mac-address")
+            .get_one::<String>("output-folder")
             .unwrap_or(&empty_string)
             .to_string();
 
@@ -99,12 +105,13 @@ impl Config {
                 .get_one::<String>("tz-offset")
                 .unwrap_or(&no_offset)
                 .to_string();
+            config.limit = *weather_args.get_one::<u16>("limit").unwrap_or(&288);
         } else {
             config.tz_offset = no_offset;
+            config.limit = 288;
         }
 
-        config.detail_level = *cli_args.get_one::<u8>("detail-level").unwrap_or(&1);
-        config.limit = *cli_args.get_one::<u16>("limit").unwrap_or(&288);
+        config.detail_level = *cli_args.get_one::<u8>("detail").unwrap_or(&1);
 
         log::debug!("Read configuration from CLI: {config:?}");
 

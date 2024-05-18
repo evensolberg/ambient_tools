@@ -48,7 +48,7 @@ pub fn build_cli() -> Command {
             .env("AMBIENT_WEATHER_OUTPUT_FOLDER")
             .default_value(".")
         )
-        .arg( // Output folder
+        .arg( // Config-file
             Arg::new("config-file")
             .short('c')
             .long("config-file")
@@ -123,5 +123,8 @@ pub fn build_cli() -> Command {
                     .env("AMBIENT_WEATHER_TZ_OFFSET")
                     .conflicts_with("time-zone")
             )
+        )
+        .subcommand(Command::new("timezone")
+            .about("Print the local time zone information.")
         )
 }

@@ -5,6 +5,7 @@ mod device;
 mod query;
 mod weather;
 
+use chrono::Offset;
 use shared::config;
 
 use crate::detail::DetailLevel::{self, *};
@@ -100,6 +101,13 @@ async fn run() -> Result<(), Box<dyn Error>> {
             }
         }
 
+        QueryType::GetTimezone => {
+            if detail_level > Quiet {
+                log::info!("Getting timezone information.\n");
+            }
+            print_timezone();
+        }
+
         QueryType::Help => {
             log::debug!("Help requested.");
             cli_cmd.print_help()?;
@@ -157,4 +165,21 @@ fn set_log_level(detail_level: DetailLevel, logbuilder: &mut env_logger::Builder
 
     // Initialize logging
     logbuilder.target(Target::Stdout).init();
+}
+
+/// Print time zone information.
+fn print_timezone() {
+    let local_time = chrono::Local::now();
+    println!("Local time:            {local_time}");
+    println!("UTC time:              {}", chrono::Utc::now());
+    println!(
+        "Local offset:          {} seconds",
+        local_time.offset().fix().local_minus_utc()
+    );
+    println!("Local timezone offset: {} (HH:MM)", local_time.offset());
+    if let Ok(tz_name) = iana_time_zone::get_timezone() {
+        println!("Local timezone name:   {tz_name}");
+    } else {
+        println!("Unable to determine local timezone name.");
+    }
 }
