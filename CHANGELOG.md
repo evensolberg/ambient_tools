@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [unreleased]
+
+### Feat
+
+- Blank config file generation
+
 ## [0.5.0] - 2024-05-18
 
 ### Chore
