@@ -8,10 +8,10 @@ mod weather;
 use chrono::Offset;
 use shared::config;
 
-use crate::detail::DetailLevel::{self, *};
+use crate::detail::DetailLevel::{self, Quiet};
 use crate::device::get_device_info;
 use crate::query::QueryType;
-use crate::weather::download;
+use crate::weather::download::{self, yesterday};
 
 use std::error::Error;
 
@@ -52,17 +52,14 @@ async fn run() -> Result<(), Box<dyn Error>> {
             let dev_info_file_name = cli_args
                 .get_one::<String>("device-info-filename")
                 .unwrap_or(&info_file_default);
-            if detail_level > Quiet {
-                log::info!("Getting device information.");
-            }
 
-            check_output_folder(&config.output_folder)?;
-
-            let full_path = format!("{}/{dev_info_file_name}", config.output_folder);
-            let bytes_written = get_device_info(&creds, &full_path, detail_level).await?;
-            if detail_level > Quiet {
-                log::info!("Wrote {bytes_written} bytes to {full_path}.");
-            }
+            download_device_info(
+                dev_info_file_name,
+                detail_level,
+                &config.output_folder,
+                &creds,
+            )
+            .await?;
         }
 
         QueryType::GetWeather => {
@@ -73,7 +70,9 @@ async fn run() -> Result<(), Box<dyn Error>> {
             check_output_folder(&config.output_folder)?;
 
             // Get the ArgMatches for the subcommand
-            let subcmd_args = cli_args.subcommand_matches("weather").unwrap();
+            let subcmd_args = cli_args
+                .subcommand_matches("weather")
+                .expect("Weather subcommand not found. Yikes!");
 
             // If no date has been provided, get yesterday's weather information.
             let mut dates = Vec::<&str>::new();
@@ -86,18 +85,7 @@ async fn run() -> Result<(), Box<dyn Error>> {
             log::debug!("dates = {dates:?}.");
 
             if dates.is_empty() {
-                if detail_level > Quiet {
-                    log::info!("No dates provided. Getting yesterday's weather information.");
-                }
-
-                let info = download::download_yesterdays_weather(&creds).await?;
-                let filename = download::get_yesterdays_weather_filename()?;
-                let full_path = format!("{}/{filename}", config.output_folder);
-                let bytes_written = download::write_weather_info_to_file(&full_path, &info)?;
-
-                if detail_level > Quiet {
-                    log::info!("Wrote {bytes_written} bytes to {full_path}.");
-                }
+                download_yesterdays_weather(detail_level, creds, &config.output_folder).await?;
             }
         }
 
@@ -108,6 +96,22 @@ async fn run() -> Result<(), Box<dyn Error>> {
             print_timezone();
         }
 
+        QueryType::NewConfig => {
+            let subcmd_args = cli_args
+                .subcommand_matches("newconfig")
+                .expect("newconfig subcommand not found.");
+
+            let config_file = subcmd_args
+                .get_one::<String>("config-file")
+                .map_or("ambient_download.toml", |file| file);
+
+            if matches!(config::Config::new_config_file(config_file), Ok(())) {
+                log::info!("Created new configuration file {config_file}.");
+            } else {
+                log::error!("Unable to create new configuration file {config_file}.");
+            }
+        }
+
         QueryType::Help => {
             log::debug!("Help requested.");
             cli_cmd.print_help()?;
@@ -116,6 +120,80 @@ async fn run() -> Result<(), Box<dyn Error>> {
 
     // Everything is a-okay in the end
     Ok(())
+}
+
+/// Download the device information and write it to a file.
+///
+/// # Arguments
+///
+/// * `cli_args` - The command line arguments.
+/// * `detail_level` - The level of detail to log.
+/// * `config` - The configuration.
+///
+/// # Returns
+///
+/// A `Result` with the number of bytes written to the file.
+///
+/// # Errors
+///
+/// If the output folder cannot be created or the device information cannot be downloaded.
+async fn download_device_info(
+    dev_info_file_name: &str,
+    detail_level: DetailLevel,
+    output_folder: &str,
+    creds: &creds::Query,
+) -> Result<(), Box<dyn Error>> {
+    if detail_level > Quiet {
+        log::info!("Getting device information.");
+    }
+
+    // Check if the output folder exists and create it if it doesn't.
+    check_output_folder(output_folder)?;
+
+    let full_path = format!("{output_folder}/{dev_info_file_name}");
+    let bytes_written = get_device_info(creds, &full_path, detail_level).await?;
+
+    if detail_level > Quiet {
+        log::info!("Wrote {bytes_written} bytes to {full_path}.");
+    };
+    Ok(())
+}
+
+/// Download yesterday's weather information and write it to a file.
+///
+/// # Arguments
+///
+/// * `detail_level` - The level of detail to log.
+/// * `creds` - The credentials to use.
+/// * `output_folder` - The folder to write the output file to.
+///
+/// # Returns
+///
+/// A `Result` with the number of bytes written to the file.
+///
+/// # Errors
+///
+/// If the output folder cannot be created, the weather information cannot be downloaded, or the file cannot be written.
+async fn download_yesterdays_weather(
+    detail_level: DetailLevel,
+    creds: creds::Query,
+    output_folder: &str,
+) -> Result<(), Box<dyn Error>> {
+    if detail_level > Quiet {
+        log::info!("No dates provided. Getting yesterday's weather information.");
+    }
+
+    let yesterday_eod = download::end_of_day(&yesterday())?;
+    let weather_data = download::download_weather(&yesterday_eod, &creds).await?;
+
+    let output_file_name = download::filename_from_datetime(&yesterday_eod, "json");
+    let full_path = format!("{output_folder}/{output_file_name}");
+    let bytes_written = download::write_weather_info_to_file(&full_path, &weather_data)?;
+
+    if detail_level > Quiet {
+        log::info!("Wrote {bytes_written} bytes to {full_path}.");
+    };
+    Ok(())
 } // fn run()
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -123,7 +201,7 @@ async fn run() -> Result<(), Box<dyn Error>> {
 #[tokio::main]
 async fn main() {
     std::process::exit(match run().await {
-        Ok(_) => 0, // everying is hunky dory - exit with code 0 (success)
+        Ok(()) => 0, // everying is hunky dory - exit with code 0 (success)
         Err(err) => {
             log::error!("{}", err.to_string().replace('"', ""));
             1 // exit with a non-zero return code, indicating a problem
@@ -135,7 +213,7 @@ async fn main() {
 /// Checks if the folder exists, and if it doesn't atttempt to create it.
 fn check_output_folder(output_folder: &str) -> Result<(), std::io::Error> {
     if !std::path::Path::new(&output_folder).exists() {
-        std::fs::create_dir_all(&output_folder)?;
+        std::fs::create_dir_all(output_folder)?;
     }
     Ok(())
 }

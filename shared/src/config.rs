@@ -31,6 +31,7 @@ pub struct Config {
 
 impl Config {
     /// Create a new, empty `Config` struct with default values.
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
@@ -56,7 +57,7 @@ impl Config {
     /// ```
     pub fn from_file(filename: &str) -> Result<Self, Box<dyn std::error::Error>> {
         let config_str = std::fs::read_to_string(filename)?;
-        let config: Config = toml::from_str(&config_str)?;
+        let config: Self = toml::from_str(&config_str)?;
 
         log::debug!("Read configuration from {filename}: {config:?}");
 
@@ -72,11 +73,12 @@ impl Config {
     /// # Returns
     ///
     /// A `Config` struct with the values read from the command line.
+    #[must_use]
     pub fn from_args(cli_args: &ArgMatches) -> Self {
         let empty_string = String::new();
         let no_offset = String::from("+00:00");
 
-        let mut config = Config::new();
+        let mut config = Self::new();
         config.api_key = cli_args
             .get_one::<String>("api-key")
             .unwrap_or(&empty_string)
@@ -139,14 +141,42 @@ impl Config {
     /// ```
     pub fn to_file(&self, filename: &str) -> Result<(), Box<dyn std::error::Error>> {
         if !std::path::Path::new(&filename).exists() {
-            new_config_file(filename)?;
-            log::debug!("Created new configuration file {filename}")
+            Self::new_config_file(filename)?;
+            log::debug!("Created new configuration file {filename}");
         }
 
         let config_str = toml::to_string(self)?;
         std::fs::write(filename, &config_str)?;
 
         log::debug!("Wrote configuration to {filename}: {config_str:?}");
+
+        Ok(())
+    }
+
+    /// Create a new configuration file with default values.
+    ///
+    /// # Arguments
+    ///
+    /// * `filename` - The name of the file to create.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing `()` if successful, or an error if not.
+    ///
+    /// # Errors
+    ///
+    /// If the file cannot be written or the configuration cannot be serialized.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// Config::new_config_file("ambient_download.toml").expect("Unable to create configuration file.");
+    /// ```
+    pub fn new_config_file(filename: &str) -> Result<(), Box<dyn std::error::Error>> {
+        let config = Self::new();
+
+        let config_str = toml::to_string(&config)?;
+        std::fs::write(filename, config_str)?;
 
         Ok(())
     }
@@ -158,7 +188,7 @@ impl Default for Config {
     fn default() -> Self {
         Self {
             app_key: String::new(),
-            api_key: String::from(""),
+            api_key: String::new(),
             mac_address: String::new(),
             output_folder: String::from("."),
             tz_offset: String::from("+00:00"),
@@ -166,22 +196,4 @@ impl Default for Config {
             limit: 288,
         }
     }
-}
-
-/// Create a new configuration file with default values.
-fn new_config_file(filename: &str) -> Result<(), Box<dyn std::error::Error>> {
-    let config = Config {
-        app_key: String::new(),
-        api_key: String::new(),
-        mac_address: String::new(),
-        output_folder: String::from("."),
-        tz_offset: String::new(),
-        detail_level: 1,
-        limit: 288,
-    };
-
-    let config_str = toml::to_string(&config)?;
-    std::fs::write(filename, config_str)?;
-
-    Ok(())
 }

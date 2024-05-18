@@ -1,4 +1,5 @@
 /// The commands issued from the CLI
+#[allow(clippy::module_name_repetitions)]
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub enum QueryType {
     /// Get the device information.
@@ -9,6 +10,9 @@ pub enum QueryType {
 
     /// Output the local time zone information
     GetTimezone,
+
+    /// Create a new, empty config file
+    NewConfig,
 
     /// Print the help message.
     #[default]
@@ -22,6 +26,7 @@ impl QueryType {
             Some("device") => Self::GetDeviceInfo,
             Some("weather") => Self::GetWeather,
             Some("timezone") => Self::GetTimezone,
+            Some("newconfig") => Self::NewConfig,
             _ => Self::Help,
         }
     }

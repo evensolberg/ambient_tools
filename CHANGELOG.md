@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [unreleased]
+## [0.5.0] - 2024-05-18
 
 ### Chore
 
@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file.
 ### Feat
 
 - Create a blank config file
+- Time zone info in main app
 
 ### Fix
 

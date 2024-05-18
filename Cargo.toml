@@ -1,13 +1,12 @@
 [workspace]
 members = [
     "ambient_download", "shared",
-    "tz_detect",
 ]
 resolver = "2"
 
 [workspace.package]
-name = "Ambient Tools"
-version = "0.3.0"
+name = "Ambient Weather Tools"
+version = "0.4.0"
 edition = "2021"
 authors = ["Even Solberg <even.solberg@gmail.com>"]
 readme = "README.md"

@@ -1,5 +1,6 @@
 //! Contains an enum that represents the amount of detail to output.
 
+#[allow(clippy::module_name_repetitions)]
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Ord, PartialOrd)]
 pub enum DetailLevel {
     Quiet = 0,
@@ -12,14 +13,13 @@ pub enum DetailLevel {
 
 impl DetailLevel {
     /// Returns the detail level from the given number.
-    pub fn from_number(number: u8) -> Self {
+    pub const fn from_number(number: u8) -> Self {
         match number {
-            0 => DetailLevel::Quiet,
-            1 => DetailLevel::Normal,
-            2 => DetailLevel::Detailed,
-            3 => DetailLevel::Debug,
-            4 => DetailLevel::Trace,
-            _ => DetailLevel::Trace,
+            0 => Self::Quiet,
+            1 => Self::Normal,
+            2 => Self::Detailed,
+            3 => Self::Debug,
+            _ => Self::Trace,
         }
     }
 }
