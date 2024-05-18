@@ -1,5 +1,6 @@
 use clap::{Arg, Command}; // Command line
 
+#[allow(clippy::too_many_lines, clippy::module_name_repetitions)]
 pub fn build_cli() -> Command {
     Command::new(clap::crate_name!())
         .about(clap::crate_description!())
@@ -48,7 +49,7 @@ pub fn build_cli() -> Command {
             .env("AMBIENT_WEATHER_OUTPUT_FOLDER")
             .default_value(".")
         )
-        .arg( // Output folder
+        .arg( // Config-file
             Arg::new("config-file")
             .short('c')
             .long("config-file")
@@ -122,6 +123,19 @@ pub fn build_cli() -> Command {
                     .action(clap::ArgAction::Set)
                     .env("AMBIENT_WEATHER_TZ_OFFSET")
                     .conflicts_with("time-zone")
+            )
+        )
+        .subcommand(Command::new("timezone")
+            .about("Print the local time zone information.")
+        )
+        .subcommand(Command::new("newconfig")
+            .about("Create a new, empty configuration file.")
+            .arg( // Config-file
+                Arg::new("config-file")
+                    .value_name("FILENAME")
+                    .help("The name of the configuration file to create.")
+                    .long_help("The configuration file in TOML format to create. Default is 'ambient_download.toml' if not specified.")
+                    .num_args(..=1)
             )
         )
 }

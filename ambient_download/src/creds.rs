@@ -8,6 +8,7 @@ use crate::query::{self, QueryType};
 
 /// A struct to hold the credentials needed to authenticate with the Ambient Weater API and
 /// the MAC address of the console for which we are downloading information.
+#[allow(clippy::struct_field_names)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Query {
     /// The type of query we are performing.
@@ -62,7 +63,7 @@ impl Query {
     /// # Returns
     ///
     /// A new `Credentials` struct.
-    #[allow(dead_code)]
+    #[allow(dead_code, clippy::similar_names)]
     pub fn from(query_type: QueryType, api_key: &str, app_key: &str) -> Self {
         Self {
             query_type,
@@ -149,7 +150,9 @@ impl Query {
     fn weather_query_from_args(cli_args: &clap::ArgMatches) -> Self {
         let empty = String::new();
 
-        let weather_args = cli_args.subcommand_matches("weather").unwrap();
+        let weather_args = cli_args
+            .subcommand_matches("weather")
+            .expect("Weather subcommand not found. This is bad.");
 
         Self {
             query_type: QueryType::GetWeather,
@@ -163,12 +166,12 @@ impl Query {
                 .to_string(),
             mac_address: weather_args
                 .get_one::<String>("mac-address")
-                .map(|mac| mac.to_string()),
+                .map(std::string::ToString::to_string),
             end_date: weather_args.get_many::<String>("end-dates").map(|dates| {
                 dates
                     .map(|date| {
                         DateTime::parse_from_rfc3339(date)
-                            .unwrap()
+                            .unwrap_or_default()
                             .with_timezone(&Local)
                     })
                     .collect()
