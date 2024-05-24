@@ -53,6 +53,7 @@ impl Config {
     /// # Examples
     ///
     /// ```
+    /// use shared::config::Config;
     /// let config = Config::from_file("ambient_download.toml").expect("Unable to read configuration file.");
     /// ```
     pub fn from_file(filename: &str) -> Result<Self, Box<dyn std::error::Error>> {
@@ -137,6 +138,8 @@ impl Config {
     /// # Examples
     ///
     /// ```
+    /// use shared::config::Config;
+    /// let config = Config::new();
     /// config.to_file("ambient_download.toml").expect("Unable to write configuration file.");
     /// ```
     pub fn to_file(&self, filename: &str) -> Result<(), Box<dyn std::error::Error>> {
@@ -170,6 +173,7 @@ impl Config {
     /// # Examples
     ///
     /// ```
+    /// use shared::config::Config;
     /// Config::new_config_file("ambient_download.toml").expect("Unable to create configuration file.");
     /// ```
     pub fn new_config_file(filename: &str) -> Result<(), Box<dyn std::error::Error>> {

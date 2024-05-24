@@ -2,43 +2,110 @@
 
 use std::io::Write;
 
-use crate::{creds::Query, detail::DetailLevel};
+use shared::config;
+
+use crate::{creds, creds::Query, detail::DetailLevel};
 use std::error::Error;
 
-/// Get the device information.
-pub async fn download_device_info(creds: &Query) -> Result<String, Box<dyn Error>> {
+/// Get the device information and write it to a file.
+///
+/// # Arguments
+///
+/// * `cli_args` - The command line arguments.
+/// * `config` - The configuration.
+/// * `detail_level` - The level of detail to log.
+/// * `creds` - The credentials to use.
+///
+/// # Returns
+///
+/// An empty `Ok` Result if successful.
+///
+/// # Errors
+///
+/// If the device information cannot be downloaded or written to a file.
+/// If the output folder cannot be created.
+///
+/// # Panics
+///
+/// If the device subcommand is not found.
+pub fn get_device_info(
+    cli_args: &clap::ArgMatches,
+    config: &config::Config,
+    creds: &creds::Query,
+    detail_level: DetailLevel,
+) -> Result<(), Box<dyn Error>> {
+    if detail_level > DetailLevel::Quiet {
+        log::info!("Getting device information.");
+    }
+
+    let info_file_default = String::from("device-info.json");
+
+    let device_args = cli_args
+        .subcommand_matches("device")
+        .expect("Device subcommand not found. Yikes!");
+    let dev_info_file_name = device_args
+        .get_one::<String>("device-info-filename")
+        .unwrap_or(&info_file_default);
+
+    download_device_info_to_file(
+        &config.output_folder,
+        dev_info_file_name,
+        detail_level,
+        creds,
+    )?;
+    Ok(())
+}
+
+/// Download the device information and write it to a file.
+///
+/// # Arguments
+///
+/// * `output_folder` - The folder to write the output file to.
+/// * `dev_info_file_name` - The name of the file to write the device information to.
+/// * `detail_level` - The level of detail to log.
+/// * `creds` - The credentials to use.
+///
+/// # Returns
+///
+/// A `Result` with the number of bytes written to the file.
+///
+/// # Errors
+///
+/// If the output folder cannot be created or the device information cannot be downloaded.
+fn download_device_info_to_file(
+    output_folder: &str,
+    dev_info_file_name: &str,
+    detail_level: DetailLevel,
+    creds: &Query,
+) -> Result<usize, Box<dyn Error>> {
+    if detail_level > DetailLevel::Quiet {
+        log::info!("Getting device information.");
+    }
+
+    crate::check_or_create_output_folder(output_folder)?;
+
     let url = format!(
         "https://rt.ambientweather.net/v1/devices?applicationKey={}&apiKey={}",
         creds.app_key, creds.api_key
     );
 
-    let client = reqwest::Client::new();
-    let resp = client
-        .get(&url)
-        .header("Content-Type", "application/json")
-        .send()
-        .await?;
-    log::debug!("resp = {resp:?}");
-
-    let res = resp.text().await?;
-    log::debug!("res = {res:?}");
-
-    Ok(res)
-}
-
-/// Get the device information. Return the number of bytes written. Print a summary (i..e, the device information) if requested.
-pub async fn get_device_info(
-    creds: &Query,
-    filename: &str,
-    detail_level: DetailLevel,
-) -> Result<usize, Box<dyn std::error::Error>> {
-    let device_info = download_device_info(creds).await?;
+    let device_info = reqwest::blocking::get(url)?.text()?;
 
     if detail_level > DetailLevel::Normal {
         log::info!("{device_info}");
+    } else {
+        log::debug!("device_info = {device_info}");
     }
 
-    let mut file = std::fs::File::create(filename)?;
+    let full_path = format!("{output_folder}/{dev_info_file_name}");
+    let mut file = std::fs::File::create(&full_path)?;
     let bytes_written = file.write(device_info.as_bytes())?;
+
+    if detail_level > DetailLevel::Quiet {
+        log::info!("Wrote {bytes_written} bytes to {full_path}.");
+    } else {
+        log::debug!("Wrote {bytes_written} bytes to {full_path}.");
+    }
+
     Ok(bytes_written)
 }

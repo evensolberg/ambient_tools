@@ -7,4 +7,5 @@
 // pub mod speed;
 // pub mod temperature;
 
-pub mod download;
+mod download;
+pub use download::get_weather;

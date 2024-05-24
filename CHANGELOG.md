@@ -2,11 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
-## [unreleased]
+## [0.5.1] - 2024-05-18
 
 ### Feat
 
 - Blank config file generation
+- Release v0.5.0
 
 ## [0.5.0] - 2024-05-18
 
