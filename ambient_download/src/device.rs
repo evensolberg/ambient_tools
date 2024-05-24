@@ -38,11 +38,11 @@ pub fn get_device_info(
         log::info!("Getting device information.");
     }
 
-    let info_file_default = String::from("device-info.json");
-
     let device_args = cli_args
         .subcommand_matches("device")
-        .expect("Device subcommand not found. Yikes!");
+        .expect("`device` subcommand not found. Yikes!");
+
+    let info_file_default = String::from("device-info.json");
     let dev_info_file_name = device_args
         .get_one::<String>("device-info-filename")
         .unwrap_or(&info_file_default);
@@ -78,10 +78,6 @@ fn download_device_info_to_file(
     detail_level: DetailLevel,
     creds: &Query,
 ) -> Result<usize, Box<dyn Error>> {
-    if detail_level > DetailLevel::Quiet {
-        log::info!("Getting device information.");
-    }
-
     crate::check_or_create_output_folder(output_folder)?;
 
     let url = format!(

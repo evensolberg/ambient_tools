@@ -4,6 +4,51 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### Refactor
+
+- Move to blocking
+
+## [0.5.1] - 2024-05-18
+
+### Feat
+
+- Blank config file generation
+- Release v0.5.0
+
+## [0.5.0] - 2024-05-18
+
+### Chore
+
+- Delete ambient_download.toml
+
+### Doc
+
+- Changelog update
+
+### Feat
+
+- Create a blank config file
+- Time zone info in main app
+
+### Fix
+
+- Tz_detect create new blank config if not found
+
+### Refactor
+
+- Cargo.toml update
+- Cargo.toml update
+- Move config to new Shared crate
+
+## [0.4.1] - 2024-05-11
+
+### Feat
+
+- Read settings from config file
+- Added tz_detect
+
+## [0.4.0] - 2024-05-11
+
 ### Doc
 
 - Changelog Update
