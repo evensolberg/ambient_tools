@@ -9,9 +9,7 @@ use chrono::Offset;
 use shared::config;
 
 use crate::detail::DetailLevel::{self, Quiet};
-use crate::device::get_device_info;
 use crate::query::QueryType;
-use crate::weather::download::{self, yesterday};
 
 use std::error::Error;
 
@@ -21,7 +19,7 @@ use log::LevelFilter;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// This is where the magic happens.
-async fn run() -> Result<(), Box<dyn Error>> {
+fn run() -> Result<(), Box<dyn Error>> {
     // Set up the command line. Ref https://docs.rs/clap for details.
     let mut cli_cmd = cli::build_cli();
     let cli_args = cli_cmd.clone().get_matches();
@@ -48,68 +46,19 @@ async fn run() -> Result<(), Box<dyn Error>> {
 
     match creds.query_type {
         QueryType::GetDeviceInfo => {
-            let info_file_default = String::from("device-info.json");
-            let dev_info_file_name = cli_args
-                .get_one::<String>("device-info-filename")
-                .unwrap_or(&info_file_default);
-
-            download_device_info(
-                dev_info_file_name,
-                detail_level,
-                &config.output_folder,
-                &creds,
-            )
-            .await?;
+            device::get_device_info(&cli_args, &config, &creds, detail_level)?;
         }
 
         QueryType::GetWeather => {
-            if detail_level > Quiet {
-                log::info!("Getting weather information.");
-            }
-
-            check_output_folder(&config.output_folder)?;
-
-            // Get the ArgMatches for the subcommand
-            let subcmd_args = cli_args
-                .subcommand_matches("weather")
-                .expect("Weather subcommand not found. Yikes!");
-
-            // If no date has been provided, get yesterday's weather information.
-            let mut dates = Vec::<&str>::new();
-            for date in subcmd_args
-                .get_many::<String>("end-dates")
-                .unwrap_or_default()
-            {
-                dates.push(date);
-            }
-            log::debug!("dates = {dates:?}.");
-
-            if dates.is_empty() {
-                download_yesterdays_weather(detail_level, creds, &config.output_folder).await?;
-            }
+            weather::get_weather(&cli_args, config, creds, detail_level)?;
         }
 
         QueryType::GetTimezone => {
-            if detail_level > Quiet {
-                log::info!("Getting timezone information.\n");
-            }
-            print_timezone();
+            print_timezone(detail_level);
         }
 
         QueryType::NewConfig => {
-            let subcmd_args = cli_args
-                .subcommand_matches("newconfig")
-                .expect("newconfig subcommand not found.");
-
-            let config_file = subcmd_args
-                .get_one::<String>("config-file")
-                .map_or("ambient_download.toml", |file| file);
-
-            if matches!(config::Config::new_config_file(config_file), Ok(())) {
-                log::info!("Created new configuration file {config_file}.");
-            } else {
-                log::error!("Unable to create new configuration file {config_file}.");
-            }
+            create_new_config_file(cli_args, detail_level);
         }
 
         QueryType::Help => {
@@ -122,85 +71,42 @@ async fn run() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-/// Download the device information and write it to a file.
+/// Create a new configuration file from the CLI arguments. The default file name is `ambient_download.toml`.
+/// If the file already exists, it is overwritten. The function will attempt to populate the timezone offset in the file.
+/// If the timezone offset cannot be determined, the value is set to `+00:00`.
+/// The function will output an error message if the file cannot be created.
 ///
 /// # Arguments
 ///
 /// * `cli_args` - The command line arguments.
-/// * `detail_level` - The level of detail to log.
-/// * `config` - The configuration.
 ///
-/// # Returns
+/// # Panics
 ///
-/// A `Result` with the number of bytes written to the file.
-///
-/// # Errors
-///
-/// If the output folder cannot be created or the device information cannot be downloaded.
-async fn download_device_info(
-    dev_info_file_name: &str,
-    detail_level: DetailLevel,
-    output_folder: &str,
-    creds: &creds::Query,
-) -> Result<(), Box<dyn Error>> {
+/// If the `newconfig` subcommand is not found.
+fn create_new_config_file(cli_args: clap::ArgMatches, detail_level: DetailLevel) {
     if detail_level > Quiet {
-        log::info!("Getting device information.");
+        log::info!("Creating new configuration file.");
     }
 
-    // Check if the output folder exists and create it if it doesn't.
-    check_output_folder(output_folder)?;
+    let subcmd_args = cli_args
+        .subcommand_matches("newconfig")
+        .expect("newconfig subcommand not found.");
 
-    let full_path = format!("{output_folder}/{dev_info_file_name}");
-    let bytes_written = get_device_info(creds, &full_path, detail_level).await?;
+    let config_file = subcmd_args
+        .get_one::<String>("config-file")
+        .map_or("ambient_download.toml", |file| file);
 
-    if detail_level > Quiet {
-        log::info!("Wrote {bytes_written} bytes to {full_path}.");
-    };
-    Ok(())
+    if matches!(config::Config::new_config_file(config_file), Ok(())) {
+        log::info!("Created new configuration file {config_file}.");
+    } else {
+        log::error!("Unable to create new configuration file {config_file}.");
+    }
 }
-
-/// Download yesterday's weather information and write it to a file.
-///
-/// # Arguments
-///
-/// * `detail_level` - The level of detail to log.
-/// * `creds` - The credentials to use.
-/// * `output_folder` - The folder to write the output file to.
-///
-/// # Returns
-///
-/// A `Result` with the number of bytes written to the file.
-///
-/// # Errors
-///
-/// If the output folder cannot be created, the weather information cannot be downloaded, or the file cannot be written.
-async fn download_yesterdays_weather(
-    detail_level: DetailLevel,
-    creds: creds::Query,
-    output_folder: &str,
-) -> Result<(), Box<dyn Error>> {
-    if detail_level > Quiet {
-        log::info!("No dates provided. Getting yesterday's weather information.");
-    }
-
-    let yesterday_eod = download::end_of_day(&yesterday())?;
-    let weather_data = download::download_weather(&yesterday_eod, &creds).await?;
-
-    let output_file_name = download::filename_from_datetime(&yesterday_eod, "json");
-    let full_path = format!("{output_folder}/{output_file_name}");
-    let bytes_written = download::write_weather_info_to_file(&full_path, &weather_data)?;
-
-    if detail_level > Quiet {
-        log::info!("Wrote {bytes_written} bytes to {full_path}.");
-    };
-    Ok(())
-} // fn run()
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// The actual executable function that gets called when the program in invoked.
-#[tokio::main]
-async fn main() {
-    std::process::exit(match run().await {
+fn main() {
+    std::process::exit(match run() {
         Ok(()) => 0, // everying is hunky dory - exit with code 0 (success)
         Err(err) => {
             log::error!("{}", err.to_string().replace('"', ""));
@@ -211,7 +117,7 @@ async fn main() {
 
 /// Gets the name of the output folder from the CLI arguments.
 /// Checks if the folder exists, and if it doesn't atttempt to create it.
-fn check_output_folder(output_folder: &str) -> Result<(), std::io::Error> {
+fn check_or_create_output_folder(output_folder: &str) -> Result<(), std::io::Error> {
     if !std::path::Path::new(&output_folder).exists() {
         std::fs::create_dir_all(output_folder)?;
     }
@@ -246,7 +152,11 @@ fn set_log_level(detail_level: DetailLevel, logbuilder: &mut env_logger::Builder
 }
 
 /// Print time zone information.
-fn print_timezone() {
+fn print_timezone(detail_level: DetailLevel) {
+    if detail_level > Quiet {
+        log::info!("Getting timezone information.\n");
+    }
+
     let local_time = chrono::Local::now();
     println!("Local time:            {local_time}");
     println!("UTC time:              {}", chrono::Utc::now());

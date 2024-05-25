@@ -1,25 +1,17 @@
 [package]
 name = "ambient_download"
-version = "0.5.0"
+version = "0.6.1"
 description = "Download Ambient Weather data in JSON format."
 authors.workspace = true
 edition.workspace = true
 
 [dependencies]
 chrono.workspace = true
-clap = { version = "4.5.4", features = ["cargo", "derive", "env", "wrap_help"] }
-env_logger = "0.11.3"
-futures = "0.3" # for our async / await blocks
-iana-time-zone = "0.1.60"
+clap.workspace = true
+env_logger.workspace = true
+iana-time-zone.workspace = true
 log.workspace = true
-reqwest = { version = "0.12.4", features = ["json"] } # reqwest with JSON parsing support
+reqwest.workspace = true
 serde.workspace = true
-serde_json = "1.0.68" # for JSON parsing
-shellexpand = "3.1.0"
-syn = { version = "2.0.60", features = ["full", "visit"] }
-tokio = { version = "1.12.0", features = ["full"] } # for our async runtime
 toml.workspace = true
 shared = { path = "../shared" }
-
-[package.metadata.hackerman.stash.dependencies]
-clap.workspace = true

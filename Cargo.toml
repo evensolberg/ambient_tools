@@ -5,7 +5,7 @@ members = [
 resolver = "2"
 
 [workspace.package]
-name = "Ambient Weather Tools"
+# name = "Ambient Weather Tools"
 version = "0.4.0"
 edition = "2021"
 authors = ["Even Solberg <even.solberg@gmail.com>"]
@@ -17,7 +17,10 @@ homepage = "https://github.com/evensolberg/ambient_tools"
 [workspace.dependencies]
 chrono = { version = "0.4.38", features = ["serde"] }
 clap = { version = "4.5.4", features = ["cargo", "env", "wrap_help"] }
+env_logger = "0.11.3"
+iana-time-zone = "0.1.60"
 log = "0.4.21"
+reqwest = { version = "0.12.4", features = ["json", "blocking"] } # reqwest with JSON parsing support
 serde = { version = "1.0.130", features = ["derive"] } # for JSON serialization
 toml = "0.8.12"
 shared = { path = "../shared" }
