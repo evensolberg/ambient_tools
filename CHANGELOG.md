@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### Refactor
+
+- Clean up lints
+
+## [0.7.1] - 2024-05-25
+
 ### Feat
 
 - Move to start date
