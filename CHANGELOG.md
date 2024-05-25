@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [unreleased]
+
+### Refactor
+
+- Clean up lints
+
+## [0.7.1] - 2024-05-25
+
+### Feat
+
+- Move to start date
+
+## [0.7.0] - 2024-05-25
+
+### Feat
+
+- Add sleep_time to config
+
 ## [0.6.1] - 2024-05-24
 
 ### Feat
