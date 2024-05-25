@@ -154,7 +154,6 @@ fn download_weather(
         return Err("The maximum number of days is 1095 (3 years).".into());
     }
 
-    let sleep_duration = 10; // How long to sleep between downloads to avoid rate limiting.
     let mut date = *end_date;
     let output_folder = &config.output_folder;
 
@@ -173,9 +172,12 @@ fn download_weather(
 
         if num_days > 1 && d < num_days - 1 {
             if detail_level > DetailLevel::Quiet {
-                log::info!("Sleeping for {sleep_duration} seconds to avoid rate limiting.");
+                log::info!(
+                    "Sleeping for {} seconds to avoid rate limiting.",
+                    config.sleep_time
+                );
             }
-            sleep(std::time::Duration::from_secs(sleep_duration));
+            sleep(std::time::Duration::from_secs(config.sleep_time));
         }
     }
 

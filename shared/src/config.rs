@@ -27,6 +27,9 @@ pub struct Config {
 
     /// The number of records to limit the output to.
     pub limit: u16,
+
+    /// Sleep duration in seconds.
+    pub sleep_time: u64,
 }
 
 impl Config {
@@ -114,6 +117,12 @@ impl Config {
             config.limit = 288;
         }
 
+        if let Some(weather_args) = cli_args.subcommand_matches("weather") {
+            config.sleep_time = *weather_args.get_one::<u64>("sleep-time").unwrap_or(&10);
+        } else {
+            config.sleep_time = 10;
+        }
+
         config.detail_level = *cli_args.get_one::<u8>("detail").unwrap_or(&1);
 
         log::debug!("Read configuration from CLI: {config:?}");
@@ -198,6 +207,7 @@ impl Default for Config {
             tz_offset: String::from("+00:00"),
             detail_level: 1,
             limit: 288,
+            sleep_time: 10,
         }
     }
 }

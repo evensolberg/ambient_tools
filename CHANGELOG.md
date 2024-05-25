@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.1] - 2024-05-24
+
+### Feat
+
+- Download weather for dates and durations
+
 ## [0.6.0] - 2024-05-24
 
 ### Refactor
