@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [unreleased]
+
+### Feat
+
+- Add sleep_time to config
+
 ## [0.6.1] - 2024-05-24
 
 ### Feat
