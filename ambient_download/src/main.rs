@@ -50,7 +50,7 @@ fn run() -> Result<(), Box<dyn Error>> {
         }
 
         QueryType::GetWeather => {
-            weather::get_weather(&cli_args, config, creds, detail_level)?;
+            weather::get_weather_data(&cli_args, &config, &creds, detail_level)?;
         }
 
         QueryType::GetTimezone => {
@@ -58,7 +58,7 @@ fn run() -> Result<(), Box<dyn Error>> {
         }
 
         QueryType::NewConfig => {
-            create_new_config_file(cli_args, detail_level);
+            create_new_config_file(&cli_args, detail_level);
         }
 
         QueryType::Help => {
@@ -83,7 +83,7 @@ fn run() -> Result<(), Box<dyn Error>> {
 /// # Panics
 ///
 /// If the `newconfig` subcommand is not found.
-fn create_new_config_file(cli_args: clap::ArgMatches, detail_level: DetailLevel) {
+fn create_new_config_file(cli_args: &clap::ArgMatches, detail_level: DetailLevel) {
     if detail_level > Quiet {
         log::info!("Creating new configuration file.");
     }

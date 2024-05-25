@@ -8,4 +8,4 @@
 // pub mod temperature;
 
 mod download;
-pub use download::get_weather;
+pub use download::get_weather_data;

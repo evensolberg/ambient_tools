@@ -1,6 +1,6 @@
 [package]
 name = "ambient_download"
-version = "0.7.0"
+version = "0.7.1"
 description = "Download Ambient Weather data in JSON format."
 authors.workspace = true
 edition.workspace = true

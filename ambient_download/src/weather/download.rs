@@ -31,10 +31,10 @@ use std::error::Error;
 /// # Panics
 ///
 /// If the weather subcommand is not found.
-pub fn get_weather(
+pub fn get_weather_data(
     cli_args: &clap::ArgMatches,
-    config: config::Config,
-    creds: creds::Query,
+    config: &config::Config,
+    creds: &creds::Query,
     detail_level: DetailLevel,
 ) -> Result<(), Box<dyn Error>> {
     if detail_level > DetailLevel::Quiet {
@@ -56,17 +56,17 @@ pub fn get_weather(
     let dl_date = if date.is_empty() {
         end_of_day(&yesterday())
     } else {
-        let parse_date = format!("{date} 23:59:30 {}", config.tz_offset);
+        let date_to_parse = format!("{date} 23:59:30 {}", config.tz_offset);
 
-        let Ok(parsed_date) = DateTime::parse_from_str(&parse_date, "%F %T %:z") else {
-            let err_msg = format!("Could not parse {parse_date}.");
+        let Ok(parsed_date) = DateTime::parse_from_str(&date_to_parse, "%F %T %:z") else {
+            let err_msg = format!("Could not parse {date_to_parse}.");
             return Err(err_msg.into());
         };
 
         parsed_date.with_timezone(&Local)
     };
 
-    download_weather(&dl_date, num_days, &creds, &config, detail_level)?;
+    download_weather(&dl_date, num_days, creds, config, detail_level)?;
 
     Ok(())
 }
@@ -143,7 +143,7 @@ fn download_weather(
 
     if detail_level > DetailLevel::Quiet {
         log::info!(
-            "Sleeping for {} seconds between each download to avoid rate limiting.",
+            "Waiting for {} seconds between each download to avoid overloading servers and being hit by rate limiting.",
             config.sleep_time
         );
     }
