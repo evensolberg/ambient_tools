@@ -1,6 +1,6 @@
 [package]
-name = "shared"
-version = "0.1.0"
+name = "playground"
+version.workspace = true
 edition.workspace = true
 authors.workspace = true
 readme.workspace = true
@@ -10,11 +10,5 @@ homepage.workspace = true
 
 [dependencies]
 chrono.workspace = true
-clap.workspace = true
+chrono-tz = "0.9.0"
 iana-time-zone.workspace = true
-log.workspace = true
-serde.workspace = true
-toml.workspace = true
-
-[dev-dependencies]
-serde_json.workspace = true

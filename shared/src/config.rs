@@ -19,8 +19,8 @@ pub struct Config {
     /// The folder into which the output files are to be written.
     pub output_folder: String,
 
-    /// The timezone offset.
-    pub tz_offset: String,
+    /// Timezone in IANA format
+    pub tz_name: String,
 
     /// The level of detail to include in the output.
     pub detail_level: u8,
@@ -80,7 +80,6 @@ impl Config {
     #[must_use]
     pub fn from_args(cli_args: &ArgMatches) -> Self {
         let empty_string = String::new();
-        let no_offset = String::from("+00:00");
 
         let mut config = Self::new();
         config.api_key = cli_args
@@ -107,13 +106,13 @@ impl Config {
             .to_string();
 
         if let Some(weather_args) = cli_args.subcommand_matches("weather") {
-            config.tz_offset = weather_args
-                .get_one::<String>("tz-offset")
-                .unwrap_or(&no_offset)
+            config.tz_name = weather_args
+                .get_one::<String>("tz-name")
+                .unwrap_or(&empty_string)
                 .to_string();
             config.limit = *weather_args.get_one::<u16>("limit").unwrap_or(&288);
         } else {
-            config.tz_offset = no_offset;
+            config.tz_name = iana_time_zone::get_timezone().unwrap_or_default();
             config.limit = 288;
         }
 
@@ -204,7 +203,7 @@ impl Default for Config {
             api_key: String::new(),
             mac_address: String::new(),
             output_folder: String::from("."),
-            tz_offset: String::from("+00:00"),
+            tz_name: iana_time_zone::get_timezone().unwrap_or_default(),
             detail_level: 1,
             limit: 288,
             sleep_time: 10,

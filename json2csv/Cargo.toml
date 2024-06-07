@@ -8,6 +8,12 @@ description.workspace = true
 repository.workspace = true
 homepage.workspace = true
 
+[package.metadata.wix]
+upgrade-guid = "3BB84876-E47F-430C-B720-CA45E1079341"
+path-guid = "7004B9BA-39F3-4657-8CA1-7DDA2178B26D"
+license = false
+eula = false
+
 [dependencies]
 shared = { path = "../shared" }
 serde.workspace = true

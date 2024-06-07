@@ -115,15 +115,15 @@ pub fn build_cli() -> Command {
                     .default_value("1")
                     .value_parser(clap::value_parser!(u16).range(..=1095))
             )
-            .arg( // Time zone offset
-                Arg::new("tz-offset")
-                    .short('o')
-                    .long("tz-offset")
-                    .help("The time zone offset for the data.")
-                    .long_help("The time zone offset for the data. If not provided, the value is read from the environment variable AMBIENT_WEATHER_TZ_OFFSET.")
+            .arg( // Time zone name
+                Arg::new("tz-name")
+                    .short('z')
+                    .long("tz-name")
+                    .help("The IANA name for the time zone.")
+                    .long_help("The IANA name for the time zone to be used. If not provided, the value is read from the environment variable AMBIENT_WEATHER_TZ_NAME. If neither is provided, the local time zone is used.")
                     .num_args(1)
                     .action(clap::ArgAction::Set)
-                    .env("AMBIENT_WEATHER_TZ_OFFSET")
+                    .env("AMBIENT_WEATHER_TZ_NAME")
             )
             .arg(
                 Arg::new("sleep-time")

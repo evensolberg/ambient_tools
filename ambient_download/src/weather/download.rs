@@ -5,7 +5,10 @@ use std::thread::sleep;
 
 use crate::creds::{self, Query};
 use crate::detail::DetailLevel;
+use chrono::TimeZone;
 use chrono::{DateTime, Local, NaiveTime};
+use chrono_tz::OffsetComponents;
+
 use shared::config;
 use std::error::Error;
 
@@ -56,7 +59,8 @@ pub fn get_weather_data(
     let dl_date = if date.is_empty() {
         end_of_day(&yesterday())
     } else {
-        let date_to_parse = format!("{date} 23:59:30 {}", config.tz_offset);
+        let tz_offset = get_offset_from_tz(&config.tz_name)?;
+        let date_to_parse = format!("{date} 23:59:30 {tz_offset}",);
 
         let Ok(parsed_date) = DateTime::parse_from_str(&date_to_parse, "%F %T %:z") else {
             let err_msg = format!("Could not parse {date_to_parse}.");
@@ -206,4 +210,17 @@ pub fn end_of_day(date: &DateTime<Local>) -> DateTime<Local> {
     // Find the end of the day
     date.with_time(NaiveTime::from_hms_opt(23, 59, 30).unwrap_or_default())
         .unwrap()
+}
+
+/// Calculate the offset from UTC for a given timezone based on the IANA timezone input as a string
+fn get_offset_from_tz(tz_name: &str) -> Result<String, Box<dyn std::error::Error>> {
+    let tz: chrono_tz::Tz = tz_name.parse()?;
+    let local_time = chrono::Local::now();
+    let tz_offset = tz.offset_from_utc_datetime(&local_time.naive_utc());
+    let offset = tz_offset.base_utc_offset() + tz_offset.dst_offset();
+    let offset_secs = offset.num_seconds();
+    let offset_hrs = offset_secs / 3600;
+    let offset_mins = (offset_secs % 3600) / 60;
+
+    Ok(format!("{offset_hrs:>+03}:{offset_mins:02}"))
 }
