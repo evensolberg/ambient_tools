@@ -1,0 +1,8 @@
+app_key = ""
+api_key = ""
+mac_address = ""
+output_folder = "."
+tz_name = "America/Vancouver"
+detail_level = 1
+limit = 288
+sleep_time = 10

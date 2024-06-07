@@ -1,12 +1,19 @@
 [package]
 name = "ambient_download"
-version = "0.7.1"
+version = "0.8.0"
 description = "Download Ambient Weather data in JSON format."
 authors.workspace = true
 edition.workspace = true
 
+[package.metadata.wix]
+upgrade-guid = "1A0339D9-1B3F-48B8-90CB-40F9D54B03B5"
+path-guid = "4D1229F2-B810-4FC0-8D09-02D939A4B91A"
+license = false
+eula = false
+
 [dependencies]
 chrono.workspace = true
+chrono-tz.workspace = true
 clap.workspace = true
 env_logger.workspace = true
 iana-time-zone.workspace = true

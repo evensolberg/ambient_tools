@@ -1,6 +1,6 @@
 [package]
-name = "shared"
-version = "0.1.0"
+name = "playground"
+version.workspace = true
 edition.workspace = true
 authors.workspace = true
 readme.workspace = true
@@ -8,13 +8,13 @@ description.workspace = true
 repository.workspace = true
 homepage.workspace = true
 
+[package.metadata.wix]
+upgrade-guid = "9C54BBE5-89C2-4E07-8742-353565CBCB50"
+path-guid = "E64DBF7E-AE09-4377-A6B6-E0D7500FEBE4"
+license = false
+eula = false
+
 [dependencies]
 chrono.workspace = true
-clap.workspace = true
+chrono-tz = "0.9.0"
 iana-time-zone.workspace = true
-log.workspace = true
-serde.workspace = true
-toml.workspace = true
-
-[dev-dependencies]
-serde_json.workspace = true

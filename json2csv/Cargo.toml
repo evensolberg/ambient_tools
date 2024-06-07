@@ -1,6 +1,6 @@
 [package]
-name = "shared"
-version = "0.1.0"
+name = "json2csv"
+version.workspace = true
 edition.workspace = true
 authors.workspace = true
 readme.workspace = true
@@ -8,13 +8,13 @@ description.workspace = true
 repository.workspace = true
 homepage.workspace = true
 
-[dependencies]
-chrono.workspace = true
-clap.workspace = true
-iana-time-zone.workspace = true
-log.workspace = true
-serde.workspace = true
-toml.workspace = true
+[package.metadata.wix]
+upgrade-guid = "3BB84876-E47F-430C-B720-CA45E1079341"
+path-guid = "7004B9BA-39F3-4657-8CA1-7DDA2178B26D"
+license = false
+eula = false
 
-[dev-dependencies]
+[dependencies]
+shared = { path = "../shared" }
+serde.workspace = true
 serde_json.workspace = true

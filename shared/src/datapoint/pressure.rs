@@ -5,6 +5,7 @@ use std::fmt::Formatter;
 
 /// The AirPressure of the weather station.
 #[derive(Debug, PartialEq, Clone, Copy, PartialOrd, Serialize, Deserialize)]
+#[allow(non_camel_case_types)] // Because these are standardised units of measure.
 pub enum AirPressure {
     /// The AirPressure in inches of mercury.
     inHg(f32),
