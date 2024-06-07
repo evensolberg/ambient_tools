@@ -8,6 +8,12 @@ description.workspace = true
 repository.workspace = true
 homepage.workspace = true
 
+[package.metadata.wix]
+upgrade-guid = "9C54BBE5-89C2-4E07-8742-353565CBCB50"
+path-guid = "E64DBF7E-AE09-4377-A6B6-E0D7500FEBE4"
+license = false
+eula = false
+
 [dependencies]
 chrono.workspace = true
 chrono-tz = "0.9.0"
