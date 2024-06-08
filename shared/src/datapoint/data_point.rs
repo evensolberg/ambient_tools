@@ -65,11 +65,11 @@ pub struct WeatherDataPoint {
     #[serde(rename(deserialize = "windgustdir"))]
     pub wind_gust_direction: Option<WindDirection>,
 
-    /// Windgust WindSpeed (mph)
+    /// Windgust `WindSpeed` (mph)
     #[serde(rename(deserialize = "windgustmph"))]
     pub wind_gust_speed: Option<WindSpeed>,
 
-    /// Maximum wind WindSpeed during the last day (mph)
+    /// Maximum wind `WindSpeed` during the last day (mph)
     #[serde(rename(deserialize = "maxdailygust"))]
     pub wind_gust_speed_daily_max: Option<WindSpeed>,
 

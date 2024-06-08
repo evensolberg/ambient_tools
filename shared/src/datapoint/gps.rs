@@ -3,7 +3,7 @@
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 
-#[derive(Debug, Default, PartialEq, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Default, PartialEq, Eq, Clone, Copy, Serialize, Deserialize)]
 pub enum GpsUnits {
     #[default]
     Decimal,
@@ -13,8 +13,8 @@ pub enum GpsUnits {
 impl Display for GpsUnits {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         match self {
-            GpsUnits::Decimal => write!(f, "Decimal"),
-            GpsUnits::DMS => write!(f, "DMS"),
+            Self::Decimal => write!(f, "Decimal"),
+            Self::DMS => write!(f, "DMS"),
         }
     }
 }
@@ -70,27 +70,29 @@ impl GpsCoordinate {
     /// Get the latitude from DMS (degrees, minutes, seconds) format.
     pub fn latitude_dms(&self) -> (i16, i16, f32) {
         let degrees = self.latitude.abs() as i16;
-        let minutes = ((self.latitude.abs() - degrees as f32) * 60.0) as i16;
-        let seconds = (self.latitude.abs() - degrees as f32 - minutes as f32 / 60.0) * 3600.0;
+        let minutes = ((self.latitude.abs() - f32::from(degrees)) * 60.0) as i16;
+        let seconds =
+            (self.latitude.abs() - f32::from(degrees) - f32::from(minutes) / 60.0) * 3600.0;
         (degrees, minutes, seconds)
     }
 
     /// Get the longitude from DMS (degrees, minutes, seconds) format.
     pub fn longitude_dms(&self) -> (i16, i16, f32) {
         let degrees = self.longitude.abs() as i16;
-        let minutes = ((self.longitude.abs() - degrees as f32) * 60.0) as i16;
-        let seconds = (self.longitude.abs() - degrees as f32 - minutes as f32 / 60.0) * 3600.0;
+        let minutes = ((self.longitude.abs() - f32::from(degrees)) * 60.0) as i16;
+        let seconds =
+            (self.longitude.abs() - f32::from(degrees) - f32::from(minutes) / 60.0) * 3600.0;
         (degrees, minutes, seconds)
     }
 
     /// Set the latitude from DMS (degrees, minutes, seconds) format.
     pub fn set_latitude_dms(&mut self, degrees: i16, minutes: i16, seconds: f32) {
-        self.latitude = degrees as f32 + minutes as f32 / 60.0 + seconds / 3600.0;
+        self.latitude = f32::from(degrees) + f32::from(minutes) / 60.0 + seconds / 3600.0;
     }
 
     /// Set the longitude from DMS (degrees, minutes, seconds) format.
     pub fn set_longitude_dms(&mut self, degrees: i16, minutes: i16, seconds: f32) {
-        self.longitude = degrees as f32 + minutes as f32 / 60.0 + seconds / 3600.0;
+        self.longitude = f32::from(degrees) + f32::from(minutes) / 60.0 + seconds / 3600.0;
     }
 
     /// Calculate the distance in kilometers between two GPS coordinates
@@ -100,11 +102,13 @@ impl GpsCoordinate {
         let earth_radius_km = 6371.0; // Earth's radius in kilometers
         let delta_latitude = (other.latitude - self.latitude).to_radians();
         let delta_longitude = (other.longitude - self.longitude).to_radians();
-        let a = (delta_latitude / 2.0).sin() * (delta_latitude / 2.0).sin()
-            + self.latitude.to_radians().cos()
+        let a = (delta_latitude / 2.0).sin().mul_add(
+            (delta_latitude / 2.0).sin(),
+            self.latitude.to_radians().cos()
                 * other.latitude.to_radians().cos()
                 * (delta_longitude / 2.0).sin()
-                * (delta_longitude / 2.0).sin();
+                * (delta_longitude / 2.0).sin(),
+        );
         let c = 2.0 * a.sqrt().atan2((1.0 - a).sqrt());
         earth_radius_km * c
     }
@@ -113,16 +117,18 @@ impl GpsCoordinate {
     pub fn bearing_to(&self, other: &Self) -> f32 {
         let delta_longitude = (other.longitude - self.longitude).to_radians();
         let y = delta_longitude.sin() * other.latitude.to_radians().cos();
-        let x = self.latitude.to_radians().cos() * other.latitude.to_radians().sin()
-            - self.latitude.to_radians().sin()
+        let x = self.latitude.to_radians().cos().mul_add(
+            other.latitude.to_radians().sin(),
+            -(self.latitude.to_radians().sin()
                 * other.latitude.to_radians().cos()
-                * delta_longitude.cos();
+                * delta_longitude.cos()),
+        );
         let bearing_degrees = y.atan2(x).to_degrees();
         (bearing_degrees + 360.0) % 360.0 // Make sure we're in the range 0..360
     }
 
     /// Calculate the midpoint between this GPS coordinate and another.
-    pub fn midpoint(&self, other: &GpsCoordinate) -> Self {
+    pub fn midpoint(&self, other: &Self) -> Self {
         let delta_longitude = (other.longitude - self.longitude).to_radians();
         let latitude1 = self.latitude.to_radians();
         let latitude2 = other.latitude.to_radians();
@@ -147,11 +153,16 @@ impl GpsCoordinate {
         let bearing = bearing_degrees.to_radians();
         let latitude = self.latitude.to_radians();
         let longitude = self.longitude.to_radians();
-        let latitude2 = (latitude.sin() * angular_distance.cos())
-            + (latitude.cos() * angular_distance.sin() * bearing.cos());
+        let latitude2 = latitude.sin().mul_add(
+            angular_distance.cos(),
+            latitude.cos() * angular_distance.sin() * bearing.cos(),
+        );
         let longitude2 = longitude
-            + (bearing.sin() * angular_distance.sin() * latitude.cos())
-                .atan2(angular_distance.cos() - latitude.sin() * latitude2.sin());
+            + (bearing.sin() * angular_distance.sin() * latitude.cos()).atan2(
+                latitude
+                    .sin()
+                    .mul_add(-latitude2.sin(), angular_distance.cos()),
+            );
         Self::new(latitude2.to_degrees(), longitude2.to_degrees())
     }
 }
@@ -164,8 +175,8 @@ impl Display for GpsCoordinate {
                 let (lat_deg, lat_min, lat_sec) = self.latitude_dms();
                 let (lon_deg, lon_min, lon_sec) = self.longitude_dms();
 
-                let lat_deg_abs = if lat_deg < 0 { -lat_deg } else { lat_deg };
-                let lon_deg_abs = if lon_deg < 0 { -lon_deg } else { lon_deg };
+                let lat_deg_abs = lat_deg.abs();
+                let lon_deg_abs = lon_deg.abs();
 
                 // Check if the latitude is positive or negative and format accordingly.
                 let lat_dir = if self.latitude >= 0.0 { 'N' } else { 'S' };
@@ -198,7 +209,7 @@ mod tests {
         let coord = GpsCoordinate::new(37.7749, -122.4194);
         assert_eq!(coord.latitude_decimal(), 37.7749);
         assert_eq!(coord.longitude_decimal(), -122.4194);
-        assert_eq!(coord.latitude_dms(), (37, 46, 29.634762));
+        assert_eq!(coord.latitude_dms(), (37, 46, 29.634_762));
         assert_eq!(coord.longitude_dms(), (122, 25, 9.85111));
 
         let mut coord = GpsCoordinate::default();
@@ -209,7 +220,7 @@ mod tests {
 
         coord.set_latitude_decimal(37.7749);
         coord.set_longitude_decimal(-122.4194);
-        assert_eq!(coord.latitude_dms(), (37, 46, 29.634762));
+        assert_eq!(coord.latitude_dms(), (37, 46, 29.634_762));
         assert_eq!(coord.longitude_dms(), (122, 25, 9.85111));
 
         let coord1 = GpsCoordinate::new(37.7749, -122.4194);
@@ -218,25 +229,25 @@ mod tests {
         assert_eq!(coord1.bearing_to(&coord2), 136.50287);
 
         let midpoint = coord1.midpoint(&coord2);
-        assert_eq!(midpoint.latitude_decimal(), 41.171646);
-        assert_eq!(midpoint.longitude_decimal(), -61.614407);
+        assert_eq!(midpoint.latitude_decimal(), 41.171_646);
+        assert_eq!(midpoint.longitude_decimal(), -61.614_407);
 
         let destination = coord1.destination(118.0, 559.0);
-        assert_eq!(destination.latitude_decimal(), 33.099026);
+        assert_eq!(destination.latitude_decimal(), 33.099_026);
         assert_eq!(destination.longitude_decimal(), -117.13848);
 
         let titanic_wreck = GpsCoordinate::new(41.7325, -49.9469);
-        assert_eq!(titanic_wreck.latitude_dms(), (41, 43, 56.993507));
-        assert_eq!(titanic_wreck.longitude_dms(), (49, 56, 48.837875));
+        assert_eq!(titanic_wreck.latitude_dms(), (41, 43, 56.993_507));
+        assert_eq!(titanic_wreck.longitude_dms(), (49, 56, 48.837_875));
 
         // Test the formatting
         let mut coord = GpsCoordinate::new(37.7749, -122.4194);
-        assert_eq!(format!("{}", coord), "(37.7749, -122.4194)");
+        assert_eq!(format!("{coord}"), "(37.7749, -122.4194)");
 
         assert_eq!(coord.format(), GpsUnits::Decimal);
         coord.set_format(GpsUnits::DMS);
         assert_eq!(
-            format!("{}", coord),
+            format!("{coord}"),
             "(37°46'29.634762\"N, 122°25'9.85111\"W)"
         );
 

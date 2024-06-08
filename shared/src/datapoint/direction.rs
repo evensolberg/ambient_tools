@@ -62,6 +62,7 @@ pub enum WindDirection {
 
 impl WindDirection {
     /// Get the direction of the wind from degrees (0-360).
+    #[must_use]
     pub fn from_degrees(degrees: f32) -> Self {
         if degrees < 0.0 {
             return Self::N(degrees + 360.0);
@@ -89,6 +90,7 @@ impl WindDirection {
     }
 
     /// Create a new `Direction` from a number.
+    #[must_use]
     pub fn from_number(num: u8) -> Self {
         match num {
             0 => Self::N(0.0),
@@ -112,6 +114,7 @@ impl WindDirection {
     }
 
     /// Get the number representation of the direction.
+    #[must_use]
     pub fn to_number(&self) -> u8 {
         match self {
             Self::N(_) => 0,
@@ -135,6 +138,7 @@ impl WindDirection {
     }
 
     /// Get the compass direction of the wind.
+    #[must_use]
     pub fn to_compass(&self) -> &str {
         match self {
             Self::N(_) => "N",
@@ -158,6 +162,7 @@ impl WindDirection {
     }
 
     /// Get the long form compass direction of the wind.
+    #[must_use]
     pub fn to_compass_long(&self) -> &str {
         match self {
             Self::N(_) => "North",
@@ -181,6 +186,7 @@ impl WindDirection {
     }
 
     /// Get the compass direction of the wind in degrees.
+    #[must_use]
     pub fn to_degrees(&self) -> f32 {
         match self {
             Self::N(d) => *d,
@@ -204,6 +210,7 @@ impl WindDirection {
     }
 
     /// Get the opposite direction of the wind.
+    #[must_use]
     pub fn opposite(&self) -> Self {
         match self {
             Self::N(d) => Self::S(*d + 180.0),

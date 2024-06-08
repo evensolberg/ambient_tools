@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use std::fmt::Formatter;
 
-/// THe length unit of measure
+/// `THe` length unit of measure
 #[derive(Debug, PartialEq, Clone, Copy, PartialOrd, Serialize, Deserialize)]
 pub enum Length {
     /// The length in inches
@@ -14,16 +14,19 @@ pub enum Length {
 
 impl Length {
     /// Create a new `Length` from an inch value.
+    #[must_use]
     pub fn from_inches(inches: f32) -> Self {
         Self::Inches(inches)
     }
 
     /// Create a new `Length` from a millimeter value.
+    #[must_use]
     pub fn from_millimeters(millimeters: f32) -> Self {
         Self::Millimeters(millimeters)
     }
 
     /// Convert the length to inches.
+    #[must_use]
     pub fn to_inches(&self) -> f32 {
         match self {
             Self::Inches(i) => *i,
@@ -32,6 +35,7 @@ impl Length {
     }
 
     /// Convert the length to millimeters.
+    #[must_use]
     pub fn to_millimeters(&self) -> f32 {
         match self {
             Self::Inches(i) => i * 25.4,

@@ -4,9 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### Build
+
+- Remove homebrew formula for now
+
 ### Feat
 
 - JSON to CSV data structure
+- Switch to timezone instead of offset
 
 ### Refactor
 

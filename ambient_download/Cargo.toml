@@ -4,6 +4,9 @@ version = "0.8.0"
 description = "Download Ambient Weather data in JSON format."
 authors.workspace = true
 edition.workspace = true
+homepage.workspace = true
+repository.workspace = true
+readme.workspace = true
 
 [package.metadata.wix]
 upgrade-guid = "1A0339D9-1B3F-48B8-90CB-40F9D54B03B5"

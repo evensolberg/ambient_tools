@@ -15,26 +15,31 @@ pub enum Temperature {
 
 impl Temperature {
     /// Create a new `Temperature` from a Celsius value.
+    #[must_use]
     pub fn from_celsius(celsius: f32) -> Self {
         Self::Celsius(celsius)
     }
 
     /// Create a new `Temperature` from a Fahrenheit value.
+    #[must_use]
     pub fn from_fahrenheit(fahrenheit: f32) -> Self {
         Self::Fahrenheit(fahrenheit)
     }
 
     /// Create a new `Temperature` from a Kelvin value.
+    #[must_use]
     pub fn from_kelvin(kelvin: f32) -> Self {
         Self::Kelvin(kelvin)
     }
 
     /// Create a new `Temperature` from a Rankine value.
+    #[must_use]
     pub fn from_rankine(rankine: f32) -> Self {
         Self::Rankine(rankine)
     }
 
     /// Convert the temperature to Celsius.
+    #[must_use]
     pub fn to_celsius(&self) -> f32 {
         match self {
             Self::Celsius(c) => *c,
@@ -45,6 +50,7 @@ impl Temperature {
     }
 
     /// Convert the temperature to Fahrenheit.
+    #[must_use]
     pub fn to_fahrenheit(&self) -> f32 {
         match self {
             Self::Celsius(c) => c * 9.0 / 5.0 + 32.0,
@@ -55,6 +61,7 @@ impl Temperature {
     }
 
     /// Convert the temperature to Kelvin.
+    #[must_use]
     pub fn to_kelvin(&self) -> f32 {
         match self {
             Self::Celsius(c) => c + 273.15002,
@@ -65,6 +72,7 @@ impl Temperature {
     }
 
     /// Convert the temperature to Rankine.
+    #[must_use]
     pub fn to_rankine(&self) -> f32 {
         match self {
             Self::Celsius(c) => (c + 273.15002) * 9.0 / 5.0,
@@ -92,12 +100,12 @@ impl Serialize for Temperature {
 
 impl<'de> Deserialize<'de> for Temperature {
     /// Deserialize the temperature from a float. (Assumes Fahrenheit)
-    fn deserialize<D>(deserializer: D) -> Result<Temperature, D::Error>
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::de::Deserializer<'de>,
     {
         let value = f32::deserialize(deserializer)?;
-        Ok(Temperature::Fahrenheit(value))
+        Ok(Self::Fahrenheit(value))
     }
 }
 
@@ -105,10 +113,10 @@ impl Display for Temperature {
     /// Format the temperature for display.
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         match self {
-            Self::Celsius(c) => write!(f, "{:.1}°C", c),
-            Self::Fahrenheit(r) => write!(f, "{:.1}°F", r),
-            Self::Kelvin(k) => write!(f, "{:.1}K", k),
-            Self::Rankine(r) => write!(f, "{:.1}°R", r),
+            Self::Celsius(c) => write!(f, "{c:.1}°C"),
+            Self::Fahrenheit(r) => write!(f, "{r:.1}°F"),
+            Self::Kelvin(k) => write!(f, "{k:.1}K"),
+            Self::Rankine(r) => write!(f, "{r:.1}°R"),
         }
     }
 }

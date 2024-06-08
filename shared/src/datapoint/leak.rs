@@ -21,6 +21,7 @@ pub enum LeakDetector {
 
 impl LeakDetector {
     /// Create a new `LeakDetector` from a number.
+    #[must_use]
     pub fn from_number(num: u8) -> Self {
         match num {
             0 => Self::OK,
@@ -31,6 +32,7 @@ impl LeakDetector {
     }
 
     /// Get the number representation of the leak detector status.
+    #[must_use]
     pub fn to_number(&self) -> u8 {
         match self {
             Self::OK => 0,

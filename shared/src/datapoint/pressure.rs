@@ -3,159 +3,173 @@
 use serde::{Deserialize, Serialize};
 use std::fmt::Formatter;
 
-/// The AirPressure of the weather station.
+/// The `AirPressure` of the weather station.
 #[derive(Debug, PartialEq, Clone, Copy, PartialOrd, Serialize, Deserialize)]
 #[allow(non_camel_case_types)] // Because these are standardised units of measure.
 pub enum AirPressure {
-    /// The AirPressure in inches of mercury.
+    /// The `AirPressure` in inches of mercury.
     inHg(f32),
 
-    /// The AirPressure in millibars.
+    /// The `AirPressure` in millibars.
     mb(f32),
 
-    /// The AirPressure in kilopascals.
+    /// The `AirPressure` in kilopascals.
     hPa(f32),
 
-    /// The AirPressure in pounds per square inch.
+    /// The `AirPressure` in pounds per square inch.
     PSI(f32),
 
-    /// The AirPressure in atmospheres.
+    /// The `AirPressure` in atmospheres.
     Atmospheres(f32),
 
-    /// The AirPressure in millimeters of mercury.
+    /// The `AirPressure` in millimeters of mercury.
     mmHg(f32),
 }
 
 impl AirPressure {
-    /// Create a new AirPressure in inches of mercury.
+    /// Create a new `AirPressure` in inches of mercury.
+    #[must_use]
     pub fn from_in_hg(p: f32) -> Self {
-        AirPressure::inHg(p)
+        Self::inHg(p)
     }
 
-    /// Create a new AirPressure in millibars.
+    /// Create a new `AirPressure` in millibars.
+    #[must_use]
     pub fn from_mb(p: f32) -> Self {
-        AirPressure::mb(p)
+        Self::mb(p)
     }
 
-    /// Create a new AirPressure in kilopascals.
+    /// Create a new `AirPressure` in kilopascals.
+    #[must_use]
     pub fn from_hpa(p: f32) -> Self {
-        AirPressure::hPa(p)
+        Self::hPa(p)
     }
 
-    /// Create a new AirPressure in pounds per square inch.
+    /// Create a new `AirPressure` in pounds per square inch.
+    #[must_use]
     pub fn from_psi(p: f32) -> Self {
-        AirPressure::PSI(p)
+        Self::PSI(p)
     }
 
-    /// Create a new AirPressure in atmospheres.
+    /// Create a new `AirPressure` in atmospheres.
+    #[must_use]
     pub fn from_atmospheres(p: f32) -> Self {
-        AirPressure::Atmospheres(p)
+        Self::Atmospheres(p)
     }
 
-    /// Create a new AirPressure in millimeters of mercury.
+    /// Create a new `AirPressure` in millimeters of mercury.
+    #[must_use]
     pub fn from_mmhg(p: f32) -> Self {
-        AirPressure::mmHg(p)
+        Self::mmHg(p)
     }
 
-    /// Convert the AirPressure to inches of mercury.
+    /// Convert the `AirPressure` to inches of mercury.
+    #[must_use]
     pub fn to_inhg(&self) -> f32 {
         match self {
-            AirPressure::inHg(p) => *p,
-            AirPressure::mb(p) => p / 33.8639,
-            AirPressure::hPa(p) => p / 33.8639,
-            AirPressure::PSI(p) => p * 0.491154,
-            AirPressure::Atmospheres(p) => p * 29.9213,
-            AirPressure::mmHg(p) => p / 25.4,
+            Self::inHg(p) => *p,
+            Self::mb(p) => p / 33.8639,
+            Self::hPa(p) => p / 33.8639,
+            Self::PSI(p) => p * 0.491_154,
+            Self::Atmospheres(p) => p * 29.9213,
+            Self::mmHg(p) => p / 25.4,
         }
     }
 
-    /// Convert the AirPressure to millibars.
+    /// Convert the `AirPressure` to millibars.
+    #[must_use]
     pub fn to_mb(&self) -> f32 {
         match self {
-            AirPressure::inHg(p) => p * 33.8639,
-            AirPressure::mb(p) => *p,
-            AirPressure::hPa(p) => *p,
-            AirPressure::PSI(p) => p * 68.9476,
-            AirPressure::Atmospheres(p) => p * 1013.25,
-            AirPressure::mmHg(p) => p * 1.33322,
+            Self::inHg(p) => p * 33.8639,
+            Self::mb(p) => *p,
+            Self::hPa(p) => *p,
+            Self::PSI(p) => p * 68.9476,
+            Self::Atmospheres(p) => p * 1013.25,
+            Self::mmHg(p) => p * 1.33322,
         }
     }
 
-    /// Convert the AirPressure to kilopascals.
+    /// Convert the `AirPressure` to kilopascals.
+    #[must_use]
     pub fn to_hpa(&self) -> f32 {
         match self {
-            AirPressure::inHg(p) => p * 33.8639,
-            AirPressure::mb(p) => *p,
-            AirPressure::hPa(p) => *p,
-            AirPressure::PSI(p) => p * 6.89476,
-            AirPressure::Atmospheres(p) => p * 101.325,
-            AirPressure::mmHg(p) => p * 1.33322,
+            Self::inHg(p) => p * 33.8639,
+            Self::mb(p) => *p,
+            Self::hPa(p) => *p,
+            Self::PSI(p) => p * 6.89476,
+            Self::Atmospheres(p) => p * 101.325,
+            Self::mmHg(p) => p * 1.33322,
         }
     }
 
-    /// Convert the AirPressure to pounds per square inch.
+    /// Convert the `AirPressure` to pounds per square inch.
+    #[must_use]
     pub fn to_psi(&self) -> f32 {
         match self {
-            AirPressure::inHg(p) => p * 2.03602,
-            AirPressure::mb(p) => p / 68.9476,
-            AirPressure::hPa(p) => p / 6.89476,
-            AirPressure::PSI(p) => *p,
-            AirPressure::Atmospheres(p) => p * 14.6959,
-            AirPressure::mmHg(p) => p / 51.7149,
+            Self::inHg(p) => p * 2.03602,
+            Self::mb(p) => p / 68.9476,
+            Self::hPa(p) => p / 6.89476,
+            Self::PSI(p) => *p,
+            Self::Atmospheres(p) => p * 14.6959,
+            Self::mmHg(p) => p / 51.7149,
         }
     }
 
-    /// Convert the AirPressure to atmospheres.
+    /// Convert the `AirPressure` to atmospheres.
+    #[must_use]
     pub fn to_atmospheres(&self) -> f32 {
         match self {
-            AirPressure::inHg(p) => p * 0.0334211,
-            AirPressure::mb(p) => p / 1013.25,
-            AirPressure::hPa(p) => p / 101.325,
-            AirPressure::PSI(p) => p / 14.6959,
-            AirPressure::Atmospheres(p) => *p,
-            AirPressure::mmHg(p) => p / 760.0,
+            Self::inHg(p) => p * 0.033_421_1,
+            Self::mb(p) => p / 1013.25,
+            Self::hPa(p) => p / 101.325,
+            Self::PSI(p) => p / 14.6959,
+            Self::Atmospheres(p) => *p,
+            Self::mmHg(p) => p / 760.0,
         }
     }
 
-    /// Convert the AirPressure to millimeters of mercury.
+    /// Convert the `AirPressure` to millimeters of mercury.
+    #[must_use]
     pub fn to_mmhg(&self) -> f32 {
         match self {
-            AirPressure::inHg(p) => p * 25.4,
-            AirPressure::mb(p) => p / 1.33322,
-            AirPressure::hPa(p) => p / 1.33322,
-            AirPressure::PSI(p) => p * 51.7149,
-            AirPressure::Atmospheres(p) => p * 760.0,
-            AirPressure::mmHg(p) => *p,
+            Self::inHg(p) => p * 25.4,
+            Self::mb(p) => p / 1.33322,
+            Self::hPa(p) => p / 1.33322,
+            Self::PSI(p) => p * 51.7149,
+            Self::Atmospheres(p) => p * 760.0,
+            Self::mmHg(p) => *p,
         }
     }
 
-    /// Convert the AirPressure to the specified unit.
-    pub fn to(&self, unit: AirPressure) -> f32 {
+    /// Convert the `AirPressure` to the specified unit.
+    #[must_use]
+    pub fn to(&self, unit: Self) -> f32 {
         match unit {
-            AirPressure::inHg(_) => self.to_inhg(),
-            AirPressure::mb(_) => self.to_mb(),
-            AirPressure::hPa(_) => self.to_hpa(),
-            AirPressure::PSI(_) => self.to_psi(),
-            AirPressure::Atmospheres(_) => self.to_atmospheres(),
-            AirPressure::mmHg(_) => self.to_mmhg(),
+            Self::inHg(_) => self.to_inhg(),
+            Self::mb(_) => self.to_mb(),
+            Self::hPa(_) => self.to_hpa(),
+            Self::PSI(_) => self.to_psi(),
+            Self::Atmospheres(_) => self.to_atmospheres(),
+            Self::mmHg(_) => self.to_mmhg(),
         }
     }
 
-    /// Convert the AirPressure from the specified unit.
-    pub fn from(unit: AirPressure, value: f32) -> Self {
+    /// Convert the `AirPressure` from the specified unit.
+    #[must_use]
+    pub fn from(unit: Self, value: f32) -> Self {
         match unit {
-            AirPressure::inHg(_) => AirPressure::inHg(value),
-            AirPressure::mb(_) => AirPressure::mb(value),
-            AirPressure::hPa(_) => AirPressure::hPa(value),
-            AirPressure::PSI(_) => AirPressure::PSI(value),
-            AirPressure::Atmospheres(_) => AirPressure::Atmospheres(value),
-            AirPressure::mmHg(_) => AirPressure::mmHg(value),
+            Self::inHg(_) => Self::inHg(value),
+            Self::mb(_) => Self::mb(value),
+            Self::hPa(_) => Self::hPa(value),
+            Self::PSI(_) => Self::PSI(value),
+            Self::Atmospheres(_) => Self::Atmospheres(value),
+            Self::mmHg(_) => Self::mmHg(value),
         }
     }
 }
 
 impl Default for AirPressure {
-    /// Create a new AirPressure with a value of 0.0 in inches of mercury.
+    /// Create a new `AirPressure` with a value of 0.0 in inches of mercury.
     fn default() -> Self {
         Self::inHg(0.0)
     }
@@ -164,12 +178,12 @@ impl Default for AirPressure {
 impl std::fmt::Display for AirPressure {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            AirPressure::inHg(p) => write!(f, "{} inHg", p),
-            AirPressure::mb(p) => write!(f, "{} mb", p),
-            AirPressure::hPa(p) => write!(f, "{} hPa", p),
-            AirPressure::PSI(p) => write!(f, "{} PSI", p),
-            AirPressure::Atmospheres(p) => write!(f, "{} Atmospheres", p),
-            AirPressure::mmHg(p) => write!(f, "{} mmHg", p),
+            Self::inHg(p) => write!(f, "{p} inHg"),
+            Self::mb(p) => write!(f, "{p} mb"),
+            Self::hPa(p) => write!(f, "{p} hPa"),
+            Self::PSI(p) => write!(f, "{p} PSI"),
+            Self::Atmospheres(p) => write!(f, "{p} Atmospheres"),
+            Self::mmHg(p) => write!(f, "{p} mmHg"),
         }
     }
 }

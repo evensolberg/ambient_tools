@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 
 /// The system of units used in the system.
-#[derive(Debug, Default, PartialEq, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Default, PartialEq, Eq, Clone, Copy, Serialize, Deserialize)]
 pub enum SystemOfUnits {
     /// The SI system of units.
     SI,

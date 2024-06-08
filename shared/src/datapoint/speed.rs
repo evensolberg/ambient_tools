@@ -1,46 +1,51 @@
-//! Wind WindSpeed data types.
+//! Wind `WindSpeed` data types.
 
 use serde::{Deserialize, Serialize};
 use std::fmt::Formatter;
 
-/// The WindSpeed of the weather station.
+/// The `WindSpeed` of the weather station.
 #[derive(Debug, PartialEq, Clone, Copy, PartialOrd, Serialize, Deserialize)]
 pub enum WindSpeed {
-    /// The WindSpeed in miles per hour.
+    /// The `WindSpeed` in miles per hour.
     MPH(f32),
 
-    /// The WindSpeed in kilometers per hour.
+    /// The `WindSpeed` in kilometers per hour.
     KPH(f32),
 
-    /// The WindSpeed in meters per second.
+    /// The `WindSpeed` in meters per second.
     MPS(f32),
 
-    /// The WindSpeed in Knots.
+    /// The `WindSpeed` in Knots.
     Knots(f32),
 }
 
 impl WindSpeed {
     /// Create a new `WindSpeed` from a miles per hour value.
+    #[must_use]
     pub fn from_mph(mph: f32) -> Self {
         Self::MPH(mph)
     }
 
     /// Create a new `WindSpeed` from a kilometers per hour value.
+    #[must_use]
     pub fn from_kph(kph: f32) -> Self {
         Self::KPH(kph)
     }
 
     /// Create a new `WindSpeed` from a meters per second value.
+    #[must_use]
     pub fn from_mps(mps: f32) -> Self {
         Self::MPS(mps)
     }
 
     /// Create a new `WindSpeed` from a knots value.
+    #[must_use]
     pub fn from_knots(knots: f32) -> Self {
         Self::Knots(knots)
     }
 
-    /// Convert the WindSpeed to miles per hour.
+    /// Convert the `WindSpeed` to miles per hour.
+    #[must_use]
     pub fn to_mph(&self) -> f32 {
         match self {
             Self::MPH(m) => *m,
@@ -50,7 +55,8 @@ impl WindSpeed {
         }
     }
 
-    /// Convert the WindSpeed to kilometers per hour.
+    /// Convert the `WindSpeed` to kilometers per hour.
+    #[must_use]
     pub fn to_kph(&self) -> f32 {
         match self {
             Self::MPH(m) => m * 1.60934,
@@ -60,7 +66,8 @@ impl WindSpeed {
         }
     }
 
-    /// Convert the WindSpeed to meters per second.
+    /// Convert the `WindSpeed` to meters per second.
+    #[must_use]
     pub fn to_mps(&self) -> f32 {
         match self {
             Self::MPH(m) => m / 2.23694,
@@ -70,7 +77,8 @@ impl WindSpeed {
         }
     }
 
-    /// Convert the WindSpeed to knots.
+    /// Convert the `WindSpeed` to knots.
+    #[must_use]
     pub fn to_knots(&self) -> f32 {
         match self {
             Self::Knots(k) => *k,
@@ -80,7 +88,7 @@ impl WindSpeed {
 }
 
 impl std::fmt::Display for WindSpeed {
-    /// Format the WindSpeed for display.
+    /// Format the `WindSpeed` for display.
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         match self {
             Self::MPH(m) => write!(f, "{m} mph"),
