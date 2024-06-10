@@ -1,7 +1,9 @@
+pub mod ambient_datapoint;
 pub mod battery;
 pub mod data_point;
 pub mod direction;
 pub mod gps;
+pub mod gps_enum;
 pub mod leak;
 pub mod length;
 pub mod pressure;

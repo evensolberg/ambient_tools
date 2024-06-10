@@ -3,26 +3,9 @@
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 
-#[derive(Debug, Default, PartialEq, Eq, Clone, Copy, Serialize, Deserialize)]
-pub enum GpsUnits {
-    #[default]
-    Decimal,
-    DMS,
-}
-
-impl Display for GpsUnits {
-    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
-        match self {
-            Self::Decimal => write!(f, "Decimal"),
-            Self::DMS => write!(f, "DMS"),
-        }
-    }
-}
-
 /// A GPS coordinate. This is a simple struct that holds a latitude and longitude in decimal degrees.
 #[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize)]
-struct GpsCoordinate {
-    format: GpsUnits,
+pub struct GpsCoordinate {
     latitude: f32,
     longitude: f32,
 }
@@ -31,7 +14,6 @@ impl GpsCoordinate {
     /// Create a new `GPS_Coordinate` from a latitude and longitude.
     pub fn new(latitude: f32, longitude: f32) -> Self {
         Self {
-            format: GpsUnits::Decimal,
             latitude,
             longitude,
         }
@@ -55,16 +37,6 @@ impl GpsCoordinate {
     /// Set the longitude.
     pub fn set_longitude_decimal(&mut self, longitude: f32) {
         self.longitude = longitude;
-    }
-
-    /// Get the format of the GPS coordinate.
-    pub fn format(&self) -> GpsUnits {
-        self.format
-    }
-
-    /// Set the format of the GPS coordinate.
-    pub fn set_format(&mut self, format: GpsUnits) {
-        self.format = format;
     }
 
     /// Get the latitude from DMS (degrees, minutes, seconds) format.
@@ -169,25 +141,7 @@ impl GpsCoordinate {
 
 impl Display for GpsCoordinate {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
-        match self.format {
-            GpsUnits::Decimal => write!(f, "({}, {})", self.latitude, self.longitude),
-            GpsUnits::DMS => {
-                let (lat_deg, lat_min, lat_sec) = self.latitude_dms();
-                let (lon_deg, lon_min, lon_sec) = self.longitude_dms();
-
-                let lat_deg_abs = lat_deg.abs();
-                let lon_deg_abs = lon_deg.abs();
-
-                // Check if the latitude is positive or negative and format accordingly.
-                let lat_dir = if self.latitude >= 0.0 { 'N' } else { 'S' };
-                let lon_dir = if self.longitude >= 0.0 { 'E' } else { 'W' };
-
-                write!(
-                    f,
-                    "({lat_deg_abs}°{lat_min}'{lat_sec}\"{lat_dir}, {lon_deg_abs}°{lon_min}'{lon_sec}\"{lon_dir})"
-                )
-            }
-        }
+        write!(f, "({}, {})", self.latitude, self.longitude)
     }
 }
 
@@ -241,16 +195,7 @@ mod tests {
         assert_eq!(titanic_wreck.longitude_dms(), (49, 56, 48.837_875));
 
         // Test the formatting
-        let mut coord = GpsCoordinate::new(37.7749, -122.4194);
+        let coord = GpsCoordinate::new(37.7749, -122.4194);
         assert_eq!(format!("{coord}"), "(37.7749, -122.4194)");
-
-        assert_eq!(coord.format(), GpsUnits::Decimal);
-        coord.set_format(GpsUnits::DMS);
-        assert_eq!(
-            format!("{coord}"),
-            "(37°46'29.634762\"N, 122°25'9.85111\"W)"
-        );
-
-        assert_eq!(coord.format(), GpsUnits::DMS);
     }
 }

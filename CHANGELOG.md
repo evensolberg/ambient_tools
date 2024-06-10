@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file.
 ### Refactor
 
 - Clean up lints
+- Lint fixes
 
 ## [0.7.1] - 2024-05-25
 

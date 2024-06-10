@@ -80,8 +80,8 @@ impl Config {
     #[must_use]
     pub fn from_args(cli_args: &ArgMatches) -> Self {
         let empty_string = String::new();
-
         let mut config = Self::new();
+
         config.api_key = cli_args
             .get_one::<String>("api-key")
             .unwrap_or(&empty_string)
