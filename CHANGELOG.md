@@ -2,11 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
-## [unreleased]
+## [0.4.1] - 2025-11-08
 
 ### Documentation
 
 - Doc Remove redundant comments
+
+### Miscellaneous Tasks
+
+- Chore Dependencies update
 
 ## [0.8.0] - 2024-06-08
 
