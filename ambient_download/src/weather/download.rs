@@ -76,6 +76,20 @@ pub fn get_weather_data(
 }
 
 /// Write the information to a JSON file
+///
+/// # Arguments
+///
+/// * `filename` - The name of the file to write to.
+/// * `weather_info` - The weather information to write to the file.
+///
+/// # Returns
+///
+/// A `Result` containing the number of bytes written to the file if successful, or an error if not.
+///
+/// # Errors
+///
+/// If the file cannot be created.
+/// If the file cannot be written.
 pub fn write_weather_info_to_file(
     filename: &str,
     weather_info: &str,
@@ -138,10 +152,10 @@ fn download_weather(
     // Create a reqwest blocking client that will be used to download the weather information.
     let timeout = std::time::Duration::from_secs(&config.sleep_time + 5);
     let kas = if config.sleep_time > 20 { 10 } else { 5 };
-    let keepalive = std::time::Duration::from_secs(kas);
+    let keepalive_secs = std::time::Duration::from_secs(kas);
     let client = reqwest::blocking::Client::builder()
         .timeout(Some(timeout))
-        .tcp_keepalive(keepalive)
+        .tcp_keepalive(keepalive_secs)
         .user_agent("ambient-downloader")
         .build()?;
 
@@ -182,8 +196,7 @@ fn download_weather(
             }
         }
 
-        let output_file_name = filename_from_datetime(&date, "json");
-        let full_path = format!("{output_folder}/{output_file_name}");
+        let full_path = format!("{output_folder}/{}", filename_from_datetime(&date, "json"));
         let bytes_written = write_weather_info_to_file(&full_path, &weather_info)?;
 
         if detail_level > DetailLevel::Quiet {

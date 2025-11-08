@@ -24,10 +24,8 @@ fn run() -> Result<(), Box<dyn Error>> {
     let mut cli_cmd = cli::build_cli();
     let cli_args = cli_cmd.clone().get_matches();
 
-    // Output the command line arguments
     log::debug!("Command line arguments: {cli_args:?}");
 
-    // Check if the config file has been provided and create a config from it. Otherwise, create it from the CLI arguments.
     let config = if let Some(config_file) = cli_args.get_one::<String>("config-file") {
         config::Config::from_file(config_file)?
     } else {
@@ -36,7 +34,6 @@ fn run() -> Result<(), Box<dyn Error>> {
 
     let detail_level = DetailLevel::from_number(config.detail_level);
 
-    // Set up logging
     let mut logbuilder = Builder::new();
     set_log_level(detail_level, &mut logbuilder);
 
@@ -67,7 +64,6 @@ fn run() -> Result<(), Box<dyn Error>> {
         }
     }
 
-    // Everything is a-okay in the end
     Ok(())
 }
 
