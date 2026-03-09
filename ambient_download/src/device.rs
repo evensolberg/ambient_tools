@@ -46,6 +46,28 @@ mod tests {
         let json = serde_json::json!({"macAddress": "AA:BB:CC:DD:EE:FF"});
         assert!(extract_mac_addresses(&json).is_empty());
     }
+
+    #[test]
+    fn additional_macs_appended_as_comments() {
+        let dir = tempfile::tempdir().unwrap();
+        let config_path = dir.path().join("test.toml");
+        std::fs::write(&config_path, "mac_address = \"AA:BB:CC:DD:EE:FF\"\n").unwrap();
+
+        let extra = ["11:22:33:44:55:66", "77:88:99:AA:BB:CC"];
+        let mut f = std::fs::OpenOptions::new()
+            .append(true)
+            .open(&config_path)
+            .unwrap();
+        writeln!(f, "\n# Additional MAC addresses found:").unwrap();
+        for mac in &extra {
+            writeln!(f, "# mac_address = \"{mac}\"").unwrap();
+        }
+        drop(f);
+
+        let contents = std::fs::read_to_string(&config_path).unwrap();
+        assert!(contents.contains("# mac_address = \"11:22:33:44:55:66\""));
+        assert!(contents.contains("# mac_address = \"77:88:99:AA:BB:CC\""));
+    }
 }
 
 /// Extract MAC addresses from a parsed Ambient Weather device list response.
@@ -144,6 +166,20 @@ pub fn get_device_info(
                 updated.mac_address = first.clone();
                 updated.to_file(config_file)?;
                 log::info!("Saved MAC address {first} to {config_file}.");
+
+                // Append remaining MACs as comments so the user can find them.
+                let mut f = std::fs::OpenOptions::new()
+                    .append(true)
+                    .open(config_file)
+                    .with_context(|| format!("Failed to open {config_file} for appending"))?;
+                writeln!(f, "\n# Additional MAC addresses found:")?;
+                for mac in &multiple[1..] {
+                    writeln!(f, "# mac_address = \"{mac}\"")?;
+                }
+                log::info!(
+                    "Appended {} additional MAC address(es) as comments to {config_file}.",
+                    multiple.len() - 1
+                );
             }
         }
     }
