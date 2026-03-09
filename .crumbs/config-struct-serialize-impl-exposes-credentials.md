@@ -1,7 +1,7 @@
 ---
 id: at-ema
 title: Config struct Serialize impl exposes credentials
-status: open
+status: closed
 type: task
 priority: 2
 tags:
@@ -9,7 +9,7 @@ tags:
 - maintainability
 created: 2026-03-08
 updated: 2026-03-08
-closed_reason: ''
+closed_reason: Config no longer derives Serialize. Custom Serialize impl redacts api_key and app_key. File I/O uses private ConfigToml struct (full credentials) via From<&Config>. Safe serialization is now the default.
 dependencies: []
 ---
 

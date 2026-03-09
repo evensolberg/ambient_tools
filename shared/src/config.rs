@@ -5,8 +5,38 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 use toml;
 
+/// Private struct used exclusively for TOML file serialization.
+/// Keeps credentials in plaintext so they can be written to and read from disk.
+/// Never use this for logging or network output — use `Config` directly instead.
+#[derive(Serialize)]
+struct ConfigToml<'a> {
+    app_key: &'a str,
+    api_key: &'a str,
+    mac_address: &'a str,
+    output_folder: &'a str,
+    tz_name: &'a str,
+    detail_level: u8,
+    limit: u16,
+    sleep_time: u64,
+}
+
+impl<'a> From<&'a Config> for ConfigToml<'a> {
+    fn from(c: &'a Config) -> Self {
+        Self {
+            app_key: &c.app_key,
+            api_key: &c.api_key,
+            mac_address: &c.mac_address,
+            output_folder: &c.output_folder,
+            tz_name: &c.tz_name,
+            detail_level: c.detail_level,
+            limit: c.limit,
+            sleep_time: c.sleep_time,
+        }
+    }
+}
+
 /// The `Config` struct holds the configuration information for the Ambient Weather API.
-#[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, Deserialize)]
 pub struct Config {
     /// The Ambient Weather Application key.
     pub app_key: String,
@@ -158,7 +188,7 @@ impl Config {
             log::debug!("Created new configuration file {filename}");
         }
 
-        let config_str = toml::to_string(self)?;
+        let config_str = toml::to_string(&ConfigToml::from(self))?;
         std::fs::write(filename, &config_str)?;
 
         log::debug!("Wrote configuration to {filename}.");
@@ -193,10 +223,29 @@ impl Config {
     pub fn new_config_file(filename: &str) -> Result<(), Box<dyn std::error::Error>> {
         let config = Self::new();
 
-        let config_str = toml::to_string(&config)?;
+        let config_str = toml::to_string(&ConfigToml::from(&config))?;
         std::fs::write(filename, config_str)?;
 
         Ok(())
+    }
+}
+
+/// Custom `Serialize` impl that redacts `api_key` and `app_key`.
+/// This makes accidental serialization (e.g. to JSON for logging) safe.
+/// File I/O uses the private `ConfigToml` struct directly to preserve real values.
+impl serde::Serialize for Config {
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        use serde::ser::SerializeStruct;
+        let mut s = serializer.serialize_struct("Config", 8)?;
+        s.serialize_field("app_key", "[REDACTED]")?;
+        s.serialize_field("api_key", "[REDACTED]")?;
+        s.serialize_field("mac_address", &self.mac_address)?;
+        s.serialize_field("output_folder", &self.output_folder)?;
+        s.serialize_field("tz_name", &self.tz_name)?;
+        s.serialize_field("detail_level", &self.detail_level)?;
+        s.serialize_field("limit", &self.limit)?;
+        s.serialize_field("sleep_time", &self.sleep_time)?;
+        s.end()
     }
 }
 
