@@ -15,6 +15,7 @@ struct ConfigToml<'a> {
     api_key: &'a str,
     mac_address: &'a str,
     output_folder: &'a str,
+    filename_pattern: &'a str,
     tz_name: &'a str,
     detail_level: u8,
     limit: u16,
@@ -28,6 +29,7 @@ impl<'a> From<&'a Config> for ConfigToml<'a> {
             api_key: &c.api_key,
             mac_address: &c.mac_address,
             output_folder: &c.output_folder,
+            filename_pattern: &c.filename_pattern,
             tz_name: &c.tz_name,
             detail_level: c.detail_level,
             limit: c.limit,
@@ -50,6 +52,11 @@ pub struct Config {
 
     /// The folder into which the output files are to be written.
     pub output_folder: String,
+
+    /// strftime-style pattern for output filenames. Supports `{mac}` as a
+    /// placeholder for the sanitized MAC address (colons replaced with dashes).
+    /// Example: `%Y/%m/{mac}-%Y-%m-%d.json`
+    pub filename_pattern: String,
 
     /// Timezone in IANA format
     pub tz_name: String,
@@ -92,11 +99,10 @@ impl Config {
     /// let config = Config::from_file("ambient_download.toml").expect("Unable to read configuration file.");
     /// ```
     pub fn from_file(filename: &str) -> Result<Self, ConfigError> {
-        let config_str =
-            std::fs::read_to_string(filename).map_err(|e| ConfigError::Read {
-                path: filename.to_string(),
-                source: e,
-            })?;
+        let config_str = std::fs::read_to_string(filename).map_err(|e| ConfigError::Read {
+            path: filename.to_string(),
+            source: e,
+        })?;
         let config: Self = toml::from_str(&config_str).map_err(|e| ConfigError::Parse {
             path: filename.to_string(),
             source: e,
@@ -122,32 +128,48 @@ impl Config {
 
         let mut config = Self::new();
         config.api_key.clone_from(
-            cli_args.get_one::<String>("api-key").unwrap_or(&empty_string)
+            cli_args
+                .get_one::<String>("api-key")
+                .unwrap_or(&empty_string),
         );
         config.app_key.clone_from(
-            cli_args.get_one::<String>("app-key").unwrap_or(&empty_string)
+            cli_args
+                .get_one::<String>("app-key")
+                .unwrap_or(&empty_string),
         );
 
         if let Some(weather_args) = cli_args.subcommand_matches("weather") {
             config.mac_address.clone_from(
-                weather_args.get_one::<String>("mac-address").unwrap_or(&empty_string)
+                weather_args
+                    .get_one::<String>("mac-address")
+                    .unwrap_or(&empty_string),
             );
         } else {
             config.mac_address.clone_from(&empty_string);
         }
 
         config.output_folder.clone_from(
-            cli_args.get_one::<String>("output-folder").unwrap_or(&empty_string)
+            cli_args
+                .get_one::<String>("output-folder")
+                .unwrap_or(&empty_string),
         );
 
         if let Some(weather_args) = cli_args.subcommand_matches("weather") {
             config.tz_name.clone_from(
-                weather_args.get_one::<String>("tz-name").unwrap_or(&empty_string)
+                weather_args
+                    .get_one::<String>("tz-name")
+                    .unwrap_or(&empty_string),
             );
             config.limit = *weather_args.get_one::<u16>("limit").unwrap_or(&288);
+            config.filename_pattern.clone_from(
+                weather_args
+                    .get_one::<String>("filename-pattern")
+                    .unwrap_or(&String::from("%Y-%m-%d.json")),
+            );
         } else {
             config.tz_name = iana_time_zone::get_timezone().unwrap_or_default();
             config.limit = 288;
+            config.filename_pattern = String::from("%Y-%m-%d.json");
         }
 
         if let Some(weather_args) = cli_args.subcommand_matches("weather") {
@@ -246,11 +268,12 @@ impl Config {
 impl serde::Serialize for Config {
     fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         use serde::ser::SerializeStruct;
-        let mut s = serializer.serialize_struct("Config", 8)?;
+        let mut s = serializer.serialize_struct("Config", 9)?;
         s.serialize_field("app_key", "[REDACTED]")?;
         s.serialize_field("api_key", "[REDACTED]")?;
         s.serialize_field("mac_address", &self.mac_address)?;
         s.serialize_field("output_folder", &self.output_folder)?;
+        s.serialize_field("filename_pattern", &self.filename_pattern)?;
         s.serialize_field("tz_name", &self.tz_name)?;
         s.serialize_field("detail_level", &self.detail_level)?;
         s.serialize_field("limit", &self.limit)?;
@@ -267,6 +290,7 @@ impl fmt::Debug for Config {
             .field("api_key", &"[REDACTED]")
             .field("mac_address", &self.mac_address)
             .field("output_folder", &self.output_folder)
+            .field("filename_pattern", &self.filename_pattern)
             .field("tz_name", &self.tz_name)
             .field("detail_level", &self.detail_level)
             .field("limit", &self.limit)
@@ -284,6 +308,7 @@ impl Default for Config {
             api_key: String::new(),
             mac_address: String::new(),
             output_folder: String::from("."),
+            filename_pattern: String::from("%Y-%m-%d.json"),
             tz_name: iana_time_zone::get_timezone().unwrap_or_default(),
             detail_level: 1,
             limit: 288,

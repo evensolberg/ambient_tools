@@ -1,14 +1,14 @@
 ---
 id: at-mj9
 title: Add JSON file name pattern support
-status: open
+status: closed
 type: feature
 priority: 2
 tags:
 - ambient-download
 created: 2026-03-08
 updated: 2026-03-08
-closed_reason: ''
+closed_reason: Implemented strftime filename pattern with {mac} token, subdir creation, CLI --filename-pattern flag, config field, and 5 unit tests
 dependencies: []
 ---
 

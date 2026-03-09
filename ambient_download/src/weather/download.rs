@@ -96,7 +96,7 @@ pub fn get_weather_data(
         config.sleep_time
     };
 
-    download_weather(&dl_date, num_days, creds, config, sleep_time, detail_level)?;
+    download_weather(&dl_date, num_days, creds, config, sleep_time, detail_level, &config.filename_pattern)?;
 
     Ok(())
 }
@@ -128,32 +128,36 @@ pub fn write_weather_info_to_file(filename: &str, weather_info: &str) -> Result<
     Ok(res)
 }
 
-/// Return a filename in the format "YYYY-MM-DD.ext" from a date.
+/// Format an output filename from a strftime pattern, a date, and a MAC address.
 ///
-/// # Arguments
-///
-/// * `date` - The date to use in the filename.
-/// * `ext` - The extension to use in the filename.
-///
-/// # Returns
-///
-/// A `Result` containing the filename if successful, or an error if not.
-///
-/// # Errors
-///
-/// If the date cannot be converted to a string.
+/// The `{mac}` token in the pattern is replaced with the sanitized MAC address
+/// (colons or hyphens stripped, then reformatted as `AA-BB-CC-DD-EE-FF`).
+/// The result is then passed through `chrono`'s strftime formatter.
 ///
 /// # Examples
 ///
 /// ```
-/// let date = Local::now();
-/// let filename = filename_from_datetime(&date, "json").expect("Could not create filename.");
+/// use chrono::Local;
+/// // "%Y-%m-%d.json"  → "2024-05-01.json"
+/// // "{mac}-%Y-%m-%d.json" with mac "AA:BB:CC:DD:EE:FF" → "AA-BB-CC-DD-EE-FF-2024-05-01.json"
 /// ```
-pub fn filename_from_datetime(date: &DateTime<Local>, ext: &str) -> String {
-    let date_str = date.format("%Y-%m-%d").to_string();
-    let filename = format!("{date_str}.{ext}");
+pub fn format_output_filename(pattern: &str, date: &DateTime<Local>, mac: &str) -> String {
+    let normalized = mac
+        .chars()
+        .filter(|c| c.is_ascii_hexdigit())
+        .collect::<String>()
+        .to_uppercase();
 
-    filename
+    // Re-insert dashes every two hex digits: AABBCCDDEEFF → AA-BB-CC-DD-EE-FF
+    let mac_dashed = normalized
+        .as_bytes()
+        .chunks(2)
+        .map(|c| std::str::from_utf8(c).unwrap_or("??"))
+        .collect::<Vec<_>>()
+        .join("-");
+
+    let with_mac = pattern.replace("{mac}", &mac_dashed);
+    date.format(&with_mac).to_string()
 }
 
 /// Download the weather information for a number of days, starting with the date specified
@@ -164,6 +168,7 @@ fn download_weather(
     config: &config::Config,
     sleep_time: u64,
     detail_level: DetailLevel,
+    filename_pattern: &str,
 ) -> Result<()> {
     if detail_level > DetailLevel::Quiet {
         log::info!("Getting weather information for {num_days} days starting at {start_date}.");
@@ -213,7 +218,15 @@ fn download_weather(
 
         let weather_info = resp.text().context("Failed to read weather response")?;
 
-        let full_path = format!("{output_folder}/{}", filename_from_datetime(&date, "json"));
+        let rel_path = format_output_filename(filename_pattern, &date, mac_address);
+        let full_path = format!("{output_folder}/{rel_path}");
+
+        // Create any subdirectories implied by the pattern (e.g. %Y/%m/).
+        if let Some(parent) = std::path::Path::new(&full_path).parent() {
+            std::fs::create_dir_all(parent)
+                .with_context(|| format!("Failed to create directory {}", parent.display()))?;
+        }
+
         let bytes_written = write_weather_info_to_file(&full_path, &weather_info)?;
 
         if detail_level > DetailLevel::Quiet {
@@ -279,7 +292,7 @@ mod tests {
         let dt = chrono::Local
             .with_ymd_and_hms(2024, 5, 1, 12, 0, 0)
             .unwrap();
-        assert_eq!(filename_from_datetime(&dt, "json"), "2024-05-01.json");
+        assert_eq!(format_output_filename("%Y-%m-%d.json", &dt, ""), "2024-05-01.json");
     }
 
     #[test]
@@ -321,6 +334,43 @@ mod tests {
     #[test]
     fn get_offset_from_tz_rejects_invalid() {
         assert!(get_offset_from_tz("Not/ATimezone").is_err());
+    }
+
+    #[test]
+    fn format_output_filename_default_pattern() {
+        let dt = chrono::Local.with_ymd_and_hms(2024, 5, 1, 12, 0, 0).unwrap();
+        assert_eq!(
+            format_output_filename("%Y-%m-%d.json", &dt, ""),
+            "2024-05-01.json"
+        );
+    }
+
+    #[test]
+    fn format_output_filename_with_mac_colon_separated() {
+        let dt = chrono::Local.with_ymd_and_hms(2024, 5, 1, 0, 0, 0).unwrap();
+        let result = format_output_filename("{mac}-%Y-%m-%d.json", &dt, "AA:BB:CC:DD:EE:FF");
+        assert_eq!(result, "AA-BB-CC-DD-EE-FF-2024-05-01.json");
+    }
+
+    #[test]
+    fn format_output_filename_with_mac_no_separator() {
+        let dt = chrono::Local.with_ymd_and_hms(2024, 5, 1, 0, 0, 0).unwrap();
+        let result = format_output_filename("{mac}-%Y-%m-%d.json", &dt, "aabbccddeeff");
+        assert_eq!(result, "AA-BB-CC-DD-EE-FF-2024-05-01.json");
+    }
+
+    #[test]
+    fn format_output_filename_subdir_pattern() {
+        let dt = chrono::Local.with_ymd_and_hms(2024, 5, 1, 0, 0, 0).unwrap();
+        let result = format_output_filename("%Y/%m/%Y-%m-%d.json", &dt, "");
+        assert_eq!(result, "2024/05/2024-05-01.json");
+    }
+
+    #[test]
+    fn format_output_filename_mac_and_subdir() {
+        let dt = chrono::Local.with_ymd_and_hms(2024, 5, 1, 0, 0, 0).unwrap();
+        let result = format_output_filename("%Y/%m/{mac}-%Y-%m-%d.json", &dt, "AA:BB:CC:DD:EE:FF");
+        assert_eq!(result, "2024/05/AA-BB-CC-DD-EE-FF-2024-05-01.json");
     }
 
     #[test]

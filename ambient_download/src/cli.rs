@@ -136,6 +136,22 @@ pub fn build_cli() -> Command {
                     .default_value("10")
                     .value_parser(clap::value_parser!(u64).range(5..=3600))
             )
+            .arg(
+                Arg::new("filename-pattern")
+                    .short('p')
+                    .long("filename-pattern")
+                    .help("strftime pattern for output filenames.")
+                    .long_help(
+                        "strftime pattern for output filenames. Use {mac} for the \
+                         sanitized MAC address (colons replaced with dashes). \
+                         Example: '%Y/%m/{mac}-%Y-%m-%d.json'. \
+                         Default is '%Y-%m-%d.json'."
+                    )
+                    .num_args(1)
+                    .action(clap::ArgAction::Set)
+                    .env("AMBIENT_WEATHER_FILENAME_PATTERN")
+                    .default_value("%Y-%m-%d.json")
+            )
         )
         .subcommand(Command::new("timezone")
             .about("Print local time zone information, optionally converting a datetime.")
