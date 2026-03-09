@@ -11,7 +11,7 @@ fn is_valid_api_key(key: &str) -> bool {
 /// Returns true if `mac` is a valid MAC address.
 /// Accepts `XX:XX:XX:XX:XX:XX`, `XX-XX-XX-XX-XX-XX`, or `XXXXXXXXXXXX`.
 fn is_valid_mac(mac: &str) -> bool {
-    let digits: String = mac.chars().filter(|c| c.is_ascii_hexdigit()).collect();
+    let digits: String = mac.chars().filter(char::is_ascii_hexdigit).collect();
     if digits.len() != 12 {
         return false;
     }
@@ -153,11 +153,11 @@ impl Query {
             api_key: cli_args
                 .get_one::<String>("api-key")
                 .unwrap_or(&empty)
-                .to_string(),
+                .clone(),
             app_key: cli_args
                 .get_one::<String>("app-key")
                 .unwrap_or(&empty)
-                .to_string(),
+                .clone(),
             ..Default::default()
         }
     }
@@ -175,11 +175,11 @@ impl Query {
             api_key: cli_args
                 .get_one::<String>("api-key")
                 .unwrap_or(&empty)
-                .to_string(),
+                .clone(),
             app_key: cli_args
                 .get_one::<String>("app-key")
                 .unwrap_or(&empty)
-                .to_string(),
+                .clone(),
             mac_address: weather_args
                 .get_one::<String>("mac-address")
                 .map(std::string::ToString::to_string),

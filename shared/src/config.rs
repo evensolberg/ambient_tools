@@ -89,34 +89,29 @@ impl Config {
         let empty_string = String::new();
 
         let mut config = Self::new();
-        config.api_key = cli_args
-            .get_one::<String>("api-key")
-            .unwrap_or(&empty_string)
-            .to_string();
-        config.app_key = cli_args
-            .get_one::<String>("app-key")
-            .unwrap_or(&empty_string)
-            .to_string();
+        config.api_key.clone_from(
+            cli_args.get_one::<String>("api-key").unwrap_or(&empty_string)
+        );
+        config.app_key.clone_from(
+            cli_args.get_one::<String>("app-key").unwrap_or(&empty_string)
+        );
 
         if let Some(weather_args) = cli_args.subcommand_matches("weather") {
-            config.mac_address = weather_args
-                .get_one::<String>("mac-address")
-                .unwrap_or(&empty_string)
-                .to_string();
+            config.mac_address.clone_from(
+                weather_args.get_one::<String>("mac-address").unwrap_or(&empty_string)
+            );
         } else {
             config.mac_address.clone_from(&empty_string);
         }
 
-        config.output_folder = cli_args
-            .get_one::<String>("output-folder")
-            .unwrap_or(&empty_string)
-            .to_string();
+        config.output_folder.clone_from(
+            cli_args.get_one::<String>("output-folder").unwrap_or(&empty_string)
+        );
 
         if let Some(weather_args) = cli_args.subcommand_matches("weather") {
-            config.tz_name = weather_args
-                .get_one::<String>("tz-name")
-                .unwrap_or(&empty_string)
-                .to_string();
+            config.tz_name.clone_from(
+                weather_args.get_one::<String>("tz-name").unwrap_or(&empty_string)
+            );
             config.limit = *weather_args.get_one::<u16>("limit").unwrap_or(&288);
         } else {
             config.tz_name = iana_time_zone::get_timezone().unwrap_or_default();

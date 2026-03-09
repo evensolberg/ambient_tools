@@ -148,7 +148,7 @@ fn set_log_level(detail_level: DetailLevel, logbuilder: &mut env_logger::Builder
         DetailLevel::Trace => {
             logbuilder.filter_level(LevelFilter::Trace);
         }
-    };
+    }
 
     // Suppress internal HTTP crate logging at all levels — these can expose URLs that contain
     // API credentials as query parameters (required by the Ambient Weather API).

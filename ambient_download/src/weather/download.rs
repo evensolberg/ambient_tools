@@ -15,7 +15,7 @@ use std::error::Error;
 
 /// Returns the recommended minimum sleep time in seconds for a given number of days.
 /// Scales up to avoid rate limiting on larger downloads.
-fn recommended_sleep_for_days(num_days: u16) -> u64 {
+const fn recommended_sleep_for_days(num_days: u16) -> u64 {
     match num_days {
         0..=5 => 10,
         6..=15 => 30,
@@ -226,7 +226,7 @@ fn download_weather(
 
         if detail_level > DetailLevel::Quiet {
             log::info!("Wrote {bytes_written} bytes to {full_path}.");
-        };
+        }
 
         date += chrono::Duration::days(1);
 
@@ -263,7 +263,7 @@ pub fn end_of_day(date: &DateTime<Local>) -> DateTime<Local> {
 }
 
 /// Calculate the offset from UTC for a given timezone based on the IANA timezone input as a string
-pub(crate) fn get_offset_from_tz(tz_name: &str) -> Result<String, Box<dyn std::error::Error>> {
+fn get_offset_from_tz(tz_name: &str) -> Result<String, Box<dyn std::error::Error>> {
     let tz: chrono_tz::Tz = tz_name.parse()?;
     let local_time = chrono::Local::now();
     let tz_offset = tz.offset_from_utc_datetime(&local_time.naive_utc());
