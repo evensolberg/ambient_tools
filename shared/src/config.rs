@@ -61,8 +61,14 @@ impl Config {
     /// let config = Config::from_file("ambient_download.toml").expect("Unable to read configuration file.");
     /// ```
     pub fn from_file(filename: &str) -> Result<Self, Box<dyn std::error::Error>> {
-        let config_str = std::fs::read_to_string(filename)?;
-        let config: Self = toml::from_str(&config_str)?;
+        let config_str = std::fs::read_to_string(filename)
+            .map_err(|e| format!("Cannot read config file '{filename}': {e}."))?;
+        let config: Self = toml::from_str(&config_str).map_err(|e| {
+            format!(
+                "Invalid config file '{filename}': {e}. \
+                 Run 'newconfig' to create a template."
+            )
+        })?;
 
         log::debug!("Read configuration from {filename}: {config:?}");
 
@@ -161,6 +167,10 @@ impl Config {
         std::fs::write(filename, &config_str)?;
 
         log::debug!("Wrote configuration to {filename}.");
+        log::warn!(
+            "'{filename}' contains API credentials in plaintext. \
+             Restrict its permissions (chmod 600) and exclude it from version control."
+        );
 
         Ok(())
     }

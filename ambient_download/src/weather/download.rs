@@ -8,9 +8,22 @@ use crate::detail::DetailLevel;
 use chrono::TimeZone;
 use chrono::{DateTime, Local, NaiveTime};
 use chrono_tz::OffsetComponents;
+use clap::parser::ValueSource;
 
 use shared::config;
 use std::error::Error;
+
+/// Returns the recommended minimum sleep time in seconds for a given number of days.
+/// Scales up to avoid rate limiting on larger downloads.
+fn recommended_sleep_for_days(num_days: u16) -> u64 {
+    match num_days {
+        0..=5 => 10,
+        6..=15 => 30,
+        16..=30 => 60,
+        31..=90 => 120,
+        _ => 300,
+    }
+}
 
 /// Get the weather information and write it to a file.
 ///
@@ -70,7 +83,21 @@ pub fn get_weather_data(
         parsed_date.with_timezone(&Local)
     };
 
-    download_weather(&dl_date, num_days, creds, config, detail_level)?;
+    // Auto-scale sleep time when the user left it at the default.
+    let sleep_time = if subcmd_args.value_source("sleep-time") == Some(ValueSource::DefaultValue) {
+        let recommended = recommended_sleep_for_days(num_days);
+        if recommended != config.sleep_time && detail_level > DetailLevel::Quiet {
+            log::info!(
+                "Auto-scaling sleep time to {recommended}s for {num_days} days. \
+                 Use --sleep-time to override."
+            );
+        }
+        recommended
+    } else {
+        config.sleep_time
+    };
+
+    download_weather(&dl_date, num_days, creds, config, sleep_time, detail_level)?;
 
     Ok(())
 }
@@ -134,6 +161,7 @@ fn download_weather(
     num_days: u16,
     creds: &Query,
     config: &config::Config,
+    sleep_time: u64,
     detail_level: DetailLevel,
 ) -> Result<(), Box<dyn Error>> {
     if detail_level > DetailLevel::Quiet {
@@ -150,8 +178,8 @@ fn download_weather(
     let limit = creds.limit.unwrap_or(288); // 288 is the maximum number of records that can be downloaded.
 
     // Create a reqwest blocking client that will be used to download the weather information.
-    let timeout = std::time::Duration::from_secs(&config.sleep_time + 5);
-    let kas = if config.sleep_time > 20 { 10 } else { 5 };
+    let timeout = std::time::Duration::from_secs(sleep_time + 5);
+    let kas = if sleep_time > 20 { 10 } else { 5 };
     let keepalive_secs = std::time::Duration::from_secs(kas);
     let client = reqwest::blocking::Client::builder()
         .timeout(Some(timeout))
@@ -160,10 +188,7 @@ fn download_weather(
         .build()?;
 
     if detail_level > DetailLevel::Quiet {
-        log::info!(
-            "Waiting for {} seconds between each download to avoid overloading servers and being hit by rate limiting.",
-            config.sleep_time
-        );
+        log::info!("Waiting for {sleep_time}s between downloads to avoid rate limiting.",);
     }
 
     for d in 0..num_days {
@@ -206,7 +231,7 @@ fn download_weather(
         date += chrono::Duration::days(1);
 
         if num_days > 1 && d < num_days - 1 {
-            sleep(std::time::Duration::from_secs(config.sleep_time));
+            sleep(std::time::Duration::from_secs(sleep_time));
         }
     }
 
@@ -229,13 +254,16 @@ pub fn end_of_day(date: &DateTime<Local>) -> DateTime<Local> {
         chrono::LocalResult::Single(dt) => dt,
         chrono::LocalResult::Ambiguous(early, _late) => early,
         chrono::LocalResult::None => {
-            *date + chrono::Duration::hours(23) + chrono::Duration::minutes(59) + chrono::Duration::seconds(30)
+            *date
+                + chrono::Duration::hours(23)
+                + chrono::Duration::minutes(59)
+                + chrono::Duration::seconds(30)
         }
     }
 }
 
 /// Calculate the offset from UTC for a given timezone based on the IANA timezone input as a string
-fn get_offset_from_tz(tz_name: &str) -> Result<String, Box<dyn std::error::Error>> {
+pub(crate) fn get_offset_from_tz(tz_name: &str) -> Result<String, Box<dyn std::error::Error>> {
     let tz: chrono_tz::Tz = tz_name.parse()?;
     let local_time = chrono::Local::now();
     let tz_offset = tz.offset_from_utc_datetime(&local_time.naive_utc());
@@ -245,4 +273,57 @@ fn get_offset_from_tz(tz_name: &str) -> Result<String, Box<dyn std::error::Error
     let offset_mins = (offset_secs % 3600) / 60;
 
     Ok(format!("{offset_hrs:>+03}:{offset_mins:02}"))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use chrono::{TimeZone, Timelike};
+
+    #[test]
+    fn filename_from_datetime_formats_correctly() {
+        let dt = chrono::Local.with_ymd_and_hms(2024, 5, 1, 12, 0, 0).unwrap();
+        assert_eq!(filename_from_datetime(&dt, "json"), "2024-05-01.json");
+    }
+
+    #[test]
+    fn yesterday_is_one_day_before_today() {
+        let today = chrono::Local::now().date_naive();
+        let y = yesterday().date_naive();
+        assert_eq!((today - y).num_days(), 1);
+    }
+
+    #[test]
+    fn end_of_day_sets_time_to_235930() {
+        let dt = chrono::Local.with_ymd_and_hms(2024, 5, 1, 8, 0, 0).unwrap();
+        let eod = end_of_day(&dt);
+        assert_eq!(eod.hour(), 23);
+        assert_eq!(eod.minute(), 59);
+        assert_eq!(eod.second(), 30);
+    }
+
+    #[test]
+    fn recommended_sleep_scales_with_days() {
+        assert_eq!(recommended_sleep_for_days(1), 10);
+        assert_eq!(recommended_sleep_for_days(5), 10);
+        assert_eq!(recommended_sleep_for_days(6), 30);
+        assert_eq!(recommended_sleep_for_days(15), 30);
+        assert_eq!(recommended_sleep_for_days(16), 60);
+        assert_eq!(recommended_sleep_for_days(30), 60);
+        assert_eq!(recommended_sleep_for_days(31), 120);
+        assert_eq!(recommended_sleep_for_days(90), 120);
+        assert_eq!(recommended_sleep_for_days(91), 300);
+        assert_eq!(recommended_sleep_for_days(365), 300);
+    }
+
+    #[test]
+    fn get_offset_from_tz_utc() {
+        let offset = get_offset_from_tz("UTC").unwrap();
+        assert_eq!(offset, "+00:00");
+    }
+
+    #[test]
+    fn get_offset_from_tz_rejects_invalid() {
+        assert!(get_offset_from_tz("Not/ATimezone").is_err());
+    }
 }

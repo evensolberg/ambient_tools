@@ -5,7 +5,7 @@ mod device;
 mod query;
 mod weather;
 
-use chrono::Offset;
+use chrono::{NaiveDateTime, Offset, TimeZone, Utc};
 use shared::config;
 
 use crate::detail::DetailLevel::{self, Quiet};
@@ -41,6 +41,13 @@ fn run() -> Result<(), Box<dyn Error>> {
     creds.query_type = query::QueryType::from_cli(&cli_args);
     log::debug!("{creds:?}");
 
+    if matches!(
+        creds.query_type,
+        QueryType::GetDeviceInfo | QueryType::GetWeather
+    ) {
+        creds.validate()?;
+    }
+
     match creds.query_type {
         QueryType::GetDeviceInfo => {
             device::get_device_info(&cli_args, &config, &creds, detail_level)?;
@@ -51,7 +58,7 @@ fn run() -> Result<(), Box<dyn Error>> {
         }
 
         QueryType::GetTimezone => {
-            print_timezone(detail_level);
+            print_timezone(&cli_args, detail_level);
         }
 
         QueryType::NewConfig => {
@@ -153,8 +160,8 @@ fn set_log_level(detail_level: DetailLevel, logbuilder: &mut env_logger::Builder
     logbuilder.target(Target::Stdout).init();
 }
 
-/// Print time zone information.
-fn print_timezone(detail_level: DetailLevel) {
+/// Print time zone information, and optionally convert a datetime between UTC and local.
+fn print_timezone(cli_args: &clap::ArgMatches, detail_level: DetailLevel) {
     if detail_level > Quiet {
         log::info!("Getting timezone information.\n");
     }
@@ -171,5 +178,31 @@ fn print_timezone(detail_level: DetailLevel) {
         println!("Local timezone name:   {tz_name}");
     } else {
         println!("Unable to determine local timezone name.");
+    }
+
+    // If a datetime argument was supplied, convert it both ways.
+    let tz_args = cli_args.subcommand_matches("timezone");
+    if let Some(Some(dt_str)) = tz_args.map(|a| a.get_one::<String>("datetime")) {
+        let fmt = "%Y-%m-%d %H:%M:%S";
+        println!();
+        if let Ok(naive) = NaiveDateTime::parse_from_str(dt_str, fmt) {
+            // Treat the input as UTC → show local equivalent.
+            let as_utc = Utc.from_utc_datetime(&naive);
+            let as_local = as_utc.with_timezone(&chrono::Local);
+            println!("Input (UTC):           {dt_str}");
+            println!("Local equivalent:      {}", as_local.format(fmt));
+
+            // Also show the reverse.
+            let as_local_naive = chrono::Local
+                .from_local_datetime(&naive)
+                .earliest();
+            if let Some(local_dt) = as_local_naive {
+                println!();
+                println!("Input (local):         {dt_str}");
+                println!("UTC equivalent:        {}", local_dt.with_timezone(&Utc).format(fmt));
+            }
+        } else {
+            log::error!("Could not parse '{dt_str}'. Expected format: YYYY-MM-DD HH:MM:SS");
+        }
     }
 }

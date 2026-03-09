@@ -1,7 +1,7 @@
 ---
 id: at-pcc
 title: Switch to using timezone instead of offset
-status: open
+status: closed
 type: feature
 priority: 1
 tags:
@@ -9,7 +9,7 @@ tags:
 - timezone
 created: 2026-03-08
 updated: 2026-03-08
-closed_reason: ''
+closed_reason: Config.tz_name stores IANA name; get_offset_from_tz() computes offset dynamically via chrono-tz
 dependencies: []
 ---
 

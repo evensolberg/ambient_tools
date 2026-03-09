@@ -85,7 +85,11 @@ fn download_device_info_to_file(
         creds.app_key, creds.api_key
     );
 
-    let device_info = reqwest::blocking::get(url)?.text()?;
+    let client = reqwest::blocking::Client::builder()
+        .timeout(std::time::Duration::from_secs(30))
+        .user_agent("ambient-downloader")
+        .build()?;
+    let device_info = client.get(url).send()?.text()?;
 
     if detail_level > DetailLevel::Normal {
         log::info!("{device_info}");

@@ -1,7 +1,7 @@
 ---
 id: at-7yu
 title: Look into switching to blocking download requests
-status: open
+status: closed
 type: task
 priority: 1
 tags:
@@ -9,7 +9,7 @@ tags:
 - network
 created: 2026-03-08
 updated: 2026-03-08
-closed_reason: ''
+closed_reason: reqwest::blocking::Client already used in download_weather() with timeout and keepalive
 dependencies: []
 ---
 

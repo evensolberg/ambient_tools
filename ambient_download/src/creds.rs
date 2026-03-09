@@ -3,6 +3,22 @@
 use chrono::{DateTime, FixedOffset, Local};
 use std::{error::Error, fmt, str::FromStr};
 
+/// Returns true if `key` is a valid 64-character lowercase hex string.
+fn is_valid_api_key(key: &str) -> bool {
+    key.len() == 64 && key.chars().all(|c| c.is_ascii_hexdigit())
+}
+
+/// Returns true if `mac` is a valid MAC address.
+/// Accepts `XX:XX:XX:XX:XX:XX`, `XX-XX-XX-XX-XX-XX`, or `XXXXXXXXXXXX`.
+fn is_valid_mac(mac: &str) -> bool {
+    let digits: String = mac.chars().filter(|c| c.is_ascii_hexdigit()).collect();
+    if digits.len() != 12 {
+        return false;
+    }
+    let sep_count = mac.chars().filter(|&c| c == ':' || c == '-').count();
+    sep_count == 0 || sep_count == 5
+}
+
 use crate::config;
 use crate::query::{self, QueryType};
 
@@ -183,6 +199,37 @@ impl Query {
         }
     }
 
+    /// Validate that credentials are present and well-formed before making API calls.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if `api_key` or `app_key` are missing or not 64-character hex strings,
+    /// or if `mac_address` is present but not a valid MAC address.
+    pub fn validate(&self) -> Result<(), Box<dyn Error>> {
+        if self.api_key.is_empty() {
+            return Err("API key is not set. Use --api-key or AMBIENT_WEATHER_API_KEY.".into());
+        }
+        if !is_valid_api_key(&self.api_key) {
+            return Err("API key must be a 64-character hexadecimal string.".into());
+        }
+        if self.app_key.is_empty() {
+            return Err(
+                "Application key is not set. Use --app-key or AMBIENT_WEATHER_APP_KEY.".into(),
+            );
+        }
+        if !is_valid_api_key(&self.app_key) {
+            return Err("Application key must be a 64-character hexadecimal string.".into());
+        }
+        if let Some(mac) = &self.mac_address {
+            if !mac.is_empty() && !is_valid_mac(mac) {
+                return Err(
+                    format!("MAC address '{mac}' is invalid. Expected XX:XX:XX:XX:XX:XX.").into(),
+                );
+            }
+        }
+        Ok(())
+    }
+
     /// Get the credentials from the configuration file.
     pub fn from_config(config: &config::Config) -> Self {
         Self {
@@ -223,5 +270,91 @@ impl Default for Query {
             limit: None,
             tz_offset: None,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn valid_key() -> String {
+        "a".repeat(64)
+    }
+
+    fn valid_query() -> Query {
+        Query {
+            api_key: valid_key(),
+            app_key: valid_key(),
+            mac_address: Some("AA:BB:CC:DD:EE:FF".to_string()),
+            ..Default::default()
+        }
+    }
+
+    #[test]
+    fn validate_accepts_valid_credentials() {
+        assert!(valid_query().validate().is_ok());
+    }
+
+    #[test]
+    fn validate_accepts_mac_without_separators() {
+        let mut q = valid_query();
+        q.mac_address = Some("AABBCCDDEEFF".to_string());
+        assert!(q.validate().is_ok());
+    }
+
+    #[test]
+    fn validate_accepts_mac_with_hyphens() {
+        let mut q = valid_query();
+        q.mac_address = Some("AA-BB-CC-DD-EE-FF".to_string());
+        assert!(q.validate().is_ok());
+    }
+
+    #[test]
+    fn validate_rejects_empty_api_key() {
+        let mut q = valid_query();
+        q.api_key = String::new();
+        assert!(q.validate().is_err());
+    }
+
+    #[test]
+    fn validate_rejects_short_api_key() {
+        let mut q = valid_query();
+        q.api_key = "abc123".to_string();
+        assert!(q.validate().is_err());
+    }
+
+    #[test]
+    fn validate_rejects_non_hex_api_key() {
+        let mut q = valid_query();
+        q.api_key = "z".repeat(64);
+        assert!(q.validate().is_err());
+    }
+
+    #[test]
+    fn validate_rejects_empty_app_key() {
+        let mut q = valid_query();
+        q.app_key = String::new();
+        assert!(q.validate().is_err());
+    }
+
+    #[test]
+    fn validate_rejects_invalid_mac() {
+        let mut q = valid_query();
+        q.mac_address = Some("ZZ:ZZ:ZZ:ZZ:ZZ:ZZ".to_string());
+        assert!(q.validate().is_err());
+    }
+
+    #[test]
+    fn validate_rejects_mac_wrong_length() {
+        let mut q = valid_query();
+        q.mac_address = Some("AA:BB:CC".to_string());
+        assert!(q.validate().is_err());
+    }
+
+    #[test]
+    fn validate_skips_mac_check_when_none() {
+        let mut q = valid_query();
+        q.mac_address = None;
+        assert!(q.validate().is_ok());
     }
 }
