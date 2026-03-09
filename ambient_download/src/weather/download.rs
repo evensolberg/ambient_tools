@@ -322,4 +322,29 @@ mod tests {
     fn get_offset_from_tz_rejects_invalid() {
         assert!(get_offset_from_tz("Not/ATimezone").is_err());
     }
+
+    #[test]
+    fn write_weather_info_pretty_prints_json() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("test.json");
+        let compact = r#"[{"dateutc":1234567890,"tempf":72.5}]"#;
+
+        let bytes = write_weather_info_to_file(path.to_str().unwrap(), compact).unwrap();
+
+        let written = std::fs::read_to_string(&path).unwrap();
+        assert!(written.contains('\n'), "output should be multi-line");
+        assert!(written.contains("  "), "output should be indented");
+        assert!(bytes > 0);
+        // Round-trip: re-parse to confirm valid JSON
+        let val: serde_json::Value = serde_json::from_str(&written).unwrap();
+        assert_eq!(val[0]["tempf"], 72.5);
+    }
+
+    #[test]
+    fn write_weather_info_rejects_invalid_json() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("bad.json");
+        let result = write_weather_info_to_file(path.to_str().unwrap(), "not json");
+        assert!(result.is_err());
+    }
 }
