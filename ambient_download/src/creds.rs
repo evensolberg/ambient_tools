@@ -1,7 +1,7 @@
 //! Contains the `Credentials` struct and its implementation.
 
 use chrono::{DateTime, FixedOffset, Local};
-use std::{error::Error, str::FromStr};
+use std::{error::Error, fmt, str::FromStr};
 
 use crate::config;
 use crate::query::{self, QueryType};
@@ -9,7 +9,7 @@ use crate::query::{self, QueryType};
 /// A struct to hold the credentials needed to authenticate with the Ambient Weater API and
 /// the MAC address of the console for which we are downloading information.
 #[allow(clippy::struct_field_names)]
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct Query {
     /// The type of query we are performing.
     pub query_type: query::QueryType,
@@ -194,6 +194,21 @@ impl Query {
             limit: Some(config.limit),
             tz_offset: None,
         }
+    }
+}
+
+/// Custom `Debug` impl that redacts sensitive credential fields.
+impl fmt::Debug for Query {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Query")
+            .field("query_type", &self.query_type)
+            .field("api_key", &"[REDACTED]")
+            .field("app_key", &"[REDACTED]")
+            .field("mac_address", &self.mac_address)
+            .field("end_date", &self.end_date)
+            .field("limit", &self.limit)
+            .field("tz_offset", &self.tz_offset)
+            .finish()
     }
 }
 

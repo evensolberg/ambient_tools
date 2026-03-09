@@ -2,10 +2,11 @@
 
 use clap::ArgMatches;
 use serde::{Deserialize, Serialize};
+use std::fmt;
 use toml;
 
 /// The `Config` struct holds the configuration information for the Ambient Weather API.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Config {
     /// The Ambient Weather Application key.
     pub app_key: String,
@@ -159,7 +160,7 @@ impl Config {
         let config_str = toml::to_string(self)?;
         std::fs::write(filename, &config_str)?;
 
-        log::debug!("Wrote configuration to {filename}: {config_str:?}");
+        log::debug!("Wrote configuration to {filename}.");
 
         Ok(())
     }
@@ -191,6 +192,22 @@ impl Config {
         std::fs::write(filename, config_str)?;
 
         Ok(())
+    }
+}
+
+/// Custom `Debug` impl that redacts sensitive credential fields.
+impl fmt::Debug for Config {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Config")
+            .field("app_key", &"[REDACTED]")
+            .field("api_key", &"[REDACTED]")
+            .field("mac_address", &self.mac_address)
+            .field("output_folder", &self.output_folder)
+            .field("tz_name", &self.tz_name)
+            .field("detail_level", &self.detail_level)
+            .field("limit", &self.limit)
+            .field("sleep_time", &self.sleep_time)
+            .finish()
     }
 }
 

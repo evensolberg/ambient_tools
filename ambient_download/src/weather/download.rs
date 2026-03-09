@@ -218,11 +218,20 @@ pub fn yesterday() -> DateTime<Local> {
     Local::now() - chrono::Duration::days(1)
 }
 
-/// Return a date at the end of the day/
+/// Return a date at the end of the day.
 pub fn end_of_day(date: &DateTime<Local>) -> DateTime<Local> {
-    // Find the end of the day
-    date.with_time(NaiveTime::from_hms_opt(23, 59, 30).unwrap_or_default())
-        .unwrap()
+    // SAFETY: 23, 59, 30 are valid time components; from_hms_opt never returns None here.
+    let t = NaiveTime::from_hms_opt(23, 59, 30).unwrap_or_default();
+    // with_time returns LocalResult which can be ambiguous during DST fall-back transitions.
+    // We take the earlier occurrence; if the time is skipped (DST spring-forward gap), we
+    // fall back to adding seconds directly to avoid a panic.
+    match date.with_time(t) {
+        chrono::LocalResult::Single(dt) => dt,
+        chrono::LocalResult::Ambiguous(early, _late) => early,
+        chrono::LocalResult::None => {
+            *date + chrono::Duration::hours(23) + chrono::Duration::minutes(59) + chrono::Duration::seconds(30)
+        }
+    }
 }
 
 /// Calculate the offset from UTC for a given timezone based on the IANA timezone input as a string
