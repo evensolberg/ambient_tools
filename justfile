@@ -6,6 +6,7 @@
 
 # VARIABLES
 application := "ambient_download"
+application2 := "ambient_process"
 
 # ALIASES
 alias b := build
@@ -69,10 +70,12 @@ alias tp := testp
 # Documents the project, lints it, builds and installs the release version, and cleans up
 @release: format changelog
     cargo install --path ambient_download --force
+    cargo install --path ambient_process --force
 
 # Documents the project, builds and installs the release version, and cleans up
 @releasea: format changelog
     cargo install --path ambient_download --force --target aarch64-apple-darwin
+    cargo install --path ambient_process --force --target aarch64-apple-darwin
 
 # Build the documentation
 @doc:
@@ -166,6 +169,7 @@ alias tp := testp
 # Read the documentation
 @read:
     open file://{{invocation_directory()}}/target/doc/{{application}}/index.html
+    open file://{{invocation_directory()}}/target/doc/{{application2}}/index.html
 
 # Builds (if necessary) and runs the project
 @run:
