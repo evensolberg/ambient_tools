@@ -1,6 +1,6 @@
 [package]
 name = "shared"
-version = "0.2.0"
+version = "0.3.0"
 edition.workspace = true
 authors.workspace = true
 readme.workspace = true
@@ -9,13 +9,17 @@ repository.workspace = true
 homepage.workspace = true
 
 [dependencies]
+anyhow = "1"
 chrono.workspace = true
 clap.workspace = true
+csv.workspace = true
+glob.workspace = true
 iana-time-zone.workspace = true
 log.workspace = true
 serde.workspace = true
+serde_json.workspace = true
 thiserror = "2"
 toml.workspace = true
 
 [dev-dependencies]
-serde_json.workspace = true
+tempfile = "3"

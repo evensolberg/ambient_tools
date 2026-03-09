@@ -1,10 +1,10 @@
 //! Defines the battery status enum for the weather station.
 
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 use std::fmt::{self, Display, Formatter};
 
 /// The battery status of the weather station.
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Ord, PartialOrd, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Ord, PartialOrd, Serialize)]
 pub enum BatteryStatus {
     /// Battery is low
     Low = 0,
@@ -49,6 +49,27 @@ impl BatteryStatus {
             Self::Ok => 1,
             Self::Unknown => 100,
         }
+    }
+}
+
+impl<'de> Deserialize<'de> for BatteryStatus {
+    /// Accept an integer (0/1), a string ("0"/"1"), or the variant names.
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        use serde::de::Error;
+        let v = serde_json::Value::deserialize(deserializer)?;
+        let n: u8 = match &v {
+            serde_json::Value::Number(n) => n.as_u64().unwrap_or(100) as u8,
+            serde_json::Value::String(s) => s.parse().unwrap_or(100),
+            _ => return Err(D::Error::custom(format!("unexpected battery value: {v}"))),
+        };
+        Ok(match n {
+            0 => Self::Low,
+            1 => Self::Ok,
+            _ => Self::Unknown,
+        })
     }
 }
 

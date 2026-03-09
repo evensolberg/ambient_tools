@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::fmt::Formatter;
 
 /// The `AirPressure` of the weather station.
-#[derive(Debug, PartialEq, Clone, Copy, PartialOrd, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Copy, PartialOrd)]
 #[allow(non_camel_case_types)] // Because these are standardised units of measure.
 pub enum AirPressure {
     /// The `AirPressure` in inches of mercury.
@@ -172,6 +172,27 @@ impl Default for AirPressure {
     /// Create a new `AirPressure` with a value of 0.0 in inches of mercury.
     fn default() -> Self {
         Self::inHg(0.0)
+    }
+}
+
+impl Serialize for AirPressure {
+    /// Serialize the AirPressure to a float (inHg).
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::ser::Serializer,
+    {
+        serializer.serialize_f32(self.to_inhg())
+    }
+}
+
+impl<'de> Deserialize<'de> for AirPressure {
+    /// Deserialize the AirPressure from a float (assumes inHg, matching the Ambient Weather API).
+    fn deserialize<D>(deserializer: D) -> Result<AirPressure, D::Error>
+    where
+        D: serde::de::Deserializer<'de>,
+    {
+        let value = f32::deserialize(deserializer)?;
+        Ok(AirPressure::inHg(value))
     }
 }
 

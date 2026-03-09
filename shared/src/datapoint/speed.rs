@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::fmt::Formatter;
 
 /// The `WindSpeed` of the weather station.
-#[derive(Debug, PartialEq, Clone, Copy, PartialOrd, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Copy, PartialOrd)]
 pub enum WindSpeed {
     /// The `WindSpeed` in miles per hour.
     MPH(f32),
@@ -99,28 +99,23 @@ impl std::fmt::Display for WindSpeed {
     }
 }
 
-// impl Serialize for WindSpeed {
-//     /// Serialize the WindSpeed to a float.
-//     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-//     where
-//         S: serde::ser::Serializer,
-//     {
-//         match self {
-//             Self::MPH(m) => serializer.serialize_f32(*m),
-//             Self::KPH(k) => serializer.serialize_f32(*k),
-//             Self::MPS(m) => serializer.serialize_f32(*m),
-//             Self::Knots(k) => serializer.serialize_f32(*k),
-//         }
-//     }
-// }
+impl Serialize for WindSpeed {
+    /// Serialize the WindSpeed to a float (mph).
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::ser::Serializer,
+    {
+        serializer.serialize_f32(self.to_mph())
+    }
+}
 
-// impl<'de> Deserialize<'de> for WindSpeed {
-//     /// Deserialize the WindSpeed from a float.
-//     fn deserialize<D>(deserializer: D) -> Result<WindSpeed, D::Error>
-//     where
-//         D: serde::de::Deserializer<'de>,
-//     {
-//         let value = f32::deserialize(deserializer)?;
-//         Ok(WindSpeed::MPH(value))
-//     }
-// }
+impl<'de> Deserialize<'de> for WindSpeed {
+    /// Deserialize the WindSpeed from a float (assumes mph, matching the Ambient Weather API).
+    fn deserialize<D>(deserializer: D) -> Result<WindSpeed, D::Error>
+    where
+        D: serde::de::Deserializer<'de>,
+    {
+        let value = f32::deserialize(deserializer)?;
+        Ok(WindSpeed::MPH(value))
+    }
+}

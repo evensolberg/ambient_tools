@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::fmt::Formatter;
 
 /// `THe` length unit of measure
-#[derive(Debug, PartialEq, Clone, Copy, PartialOrd, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Copy, PartialOrd)]
 pub enum Length {
     /// The length in inches
     Inches(f32),
@@ -54,26 +54,23 @@ impl std::fmt::Display for Length {
     }
 }
 
-// impl Serialize for Length {
-//     /// Serialize the length to a float.
-//     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-//     where
-//         S: serde::ser::Serializer,
-//     {
-//         match self {
-//             Self::Inches(i) => serializer.serialize_f32(*i),
-//             Self::Millimeters(mm) => serializer.serialize_f32(*mm),
-//         }
-//     }
-// }
+impl Serialize for Length {
+    /// Serialize the length to a float (inches).
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::ser::Serializer,
+    {
+        serializer.serialize_f32(self.to_inches())
+    }
+}
 
-// impl<'de> Deserialize<'de> for Length {
-//     /// Deserialize the length from a float.
-//     fn deserialize<D>(deserializer: D) -> Result<Length, D::Error>
-//     where
-//         D: serde::de::Deserializer<'de>,
-//     {
-//         let value = f32::deserialize(deserializer)?;
-//         Ok(Length::Inches(value))
-//     }
-// }
+impl<'de> Deserialize<'de> for Length {
+    /// Deserialize the length from a float (assumes inches, matching the Ambient Weather API).
+    fn deserialize<D>(deserializer: D) -> Result<Length, D::Error>
+    where
+        D: serde::de::Deserializer<'de>,
+    {
+        let value = f32::deserialize(deserializer)?;
+        Ok(Length::Inches(value))
+    }
+}

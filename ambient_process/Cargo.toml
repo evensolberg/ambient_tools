@@ -1,0 +1,25 @@
+[package]
+name = "ambient_process"
+version = "0.1.0"
+description = "Process and convert Ambient Weather JSON data files."
+authors.workspace = true
+edition.workspace = true
+homepage.workspace = true
+repository.workspace = true
+readme.workspace = true
+
+[package.metadata.wix]
+upgrade-guid = "B2F45E21-3C1A-4D89-A710-15E048C62F7C"
+path-guid = "6A2340F3-C921-5ED1-9E20-13F050D75A8E"
+license = false
+eula = false
+
+[dependencies]
+anyhow = "1"
+chrono.workspace = true
+clap.workspace = true
+env_logger.workspace = true
+glob.workspace = true
+log.workspace = true
+serde_json.workspace = true
+shared = { path = "../shared" }

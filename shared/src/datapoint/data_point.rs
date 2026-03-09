@@ -75,15 +75,15 @@ pub struct WeatherDataPoint {
 
     /// Wind speed (mph)
     #[serde(rename(deserialize = "windspeedmph"))]
-    wind_speed: Option<WindSpeed>,
+    pub wind_speed: Option<WindSpeed>,
 
     /// Wind speed, 2 minute average (mph)
     #[serde(rename(deserialize = "windspdmph_avg2m"))]
-    wind_speed_2min_average: Option<WindSpeed>,
+    pub wind_speed_2min_average: Option<WindSpeed>,
 
     /// Wind speed, 10 minute average (mph)
     #[serde(rename(deserialize = "windspdmph_avg10m"))]
-    wind_speed_10min_average: Option<WindSpeed>,
+    pub wind_speed_10min_average: Option<WindSpeed>,
 
     /// Hourly Rain Rate (inches/hour)
     #[serde(rename(deserialize = "hourlyrainin"))]
