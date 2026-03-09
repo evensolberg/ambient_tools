@@ -10,6 +10,8 @@ All notable changes to this project will be documented in this file.
 - P1 bugs — validation, timeouts, config errors, tests (v0.8.2)
 - Address clippy lint warnings in modified code
 - Redact credentials in Config serialization (shared v0.1.4)
+- Resolve all just lint warnings in new pipeline code
+- Resolve all lint warnings; add ambient_process README
 
 ### Features
 
@@ -19,6 +21,7 @@ All notable changes to this project will be documented in this file.
 - --save-mac flag writes discovered MAC to config file
 - Append extra MACs as comments when multiple devices found
 - Add env vars for limit, days, sleep-time; update README
+- Add ambient_process binary and shared::pipeline module
 
 ### Miscellaneous Tasks
 
@@ -31,6 +34,7 @@ All notable changes to this project will be documented in this file.
 - Bump ambient_download to v0.8.3 (patch)
 - Minor version bump for new filename pattern features
 - Bump ambient_download to 0.9.3
+- Update justfile for ambient_process binary
 
 ### Refactor
 

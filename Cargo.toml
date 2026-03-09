@@ -6,7 +6,7 @@ resolver = "2"
 
 [workspace.package]
 # name = "Ambient Weather Tools"
-version = "0.4.1"
+version = "0.5.0"
 edition = "2021"
 authors = ["Even Solberg <even.solberg@gmail.com>"]
 readme = "README.md"

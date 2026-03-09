@@ -18,8 +18,8 @@ use crate::datapoint::data_point::WeatherDataPoint;
 ///
 /// Returns an error if the file cannot be opened or if the outer JSON array is malformed.
 pub fn read_file(path: &Path) -> Result<Vec<WeatherDataPoint>> {
-    let file = std::fs::File::open(path)
-        .with_context(|| format!("Failed to open {}", path.display()))?;
+    let file =
+        std::fs::File::open(path).with_context(|| format!("Failed to open {}", path.display()))?;
     let reader = BufReader::new(file);
     let raw: Vec<serde_json::Value> = serde_json::from_reader(reader)
         .with_context(|| format!("Failed to parse JSON array in {}", path.display()))?;
@@ -63,8 +63,8 @@ pub fn read_glob(pattern: &str) -> Result<Vec<WeatherDataPoint>> {
 
 /// Expand a glob pattern into a sorted list of paths.
 fn expand_glob(pattern: &str) -> Result<Vec<PathBuf>> {
-    let entries = glob::glob(pattern)
-        .with_context(|| format!("Invalid glob pattern: {pattern}"))?;
+    let entries =
+        glob::glob(pattern).with_context(|| format!("Invalid glob pattern: {pattern}"))?;
     let mut paths: Vec<PathBuf> = entries
         .filter_map(|e| match e {
             Ok(p) => Some(p),

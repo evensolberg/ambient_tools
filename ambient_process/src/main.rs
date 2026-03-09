@@ -7,7 +7,10 @@ use chrono::NaiveDate;
 use shared::{
     datapoint::units::SystemOfUnits,
     pipeline::{
-        export::csv::{write_csv, ALL_FIELDS},
+        export::{
+            csv::{write_csv, ALL_FIELDS},
+            toon::write_toon,
+        },
         filter::DateFilter,
         reader::read_glob,
     },
@@ -48,7 +51,11 @@ fn cmd_convert(args: &clap::ArgMatches) -> Result<()> {
         records.append(&mut batch);
     }
     records.sort_by_key(|r| r.dateutc);
-    log::info!("Loaded {} records from {} pattern(s).", records.len(), patterns.len());
+    log::info!(
+        "Loaded {} records from {} pattern(s).",
+        records.len(),
+        patterns.len()
+    );
 
     // Date filter
     let from = args
@@ -81,16 +88,27 @@ fn cmd_convert(args: &clap::ArgMatches) -> Result<()> {
     });
     let fields: Option<&[&str]> = fields_override.as_deref();
 
-    // Write CSV
+    // Output format
+    let format = args
+        .get_one::<String>("format")
+        .map_or("csv", String::as_str);
+
+    // Write output
     if let Some(path) = args.get_one::<String>("output") {
         let file = std::fs::File::create(path)
             .with_context(|| format!("Failed to create output file: {path}"))?;
-        write_csv(file, &records, fields, units)?;
-        log::info!("Wrote CSV to {path}.");
+        match format {
+            "toon" => write_toon(file, &records, fields, units)?,
+            _ => write_csv(file, &records, fields, units)?,
+        }
+        log::info!("Wrote {format} to {path}.");
     } else {
         let stdout = std::io::stdout();
         let handle = stdout.lock();
-        write_csv(handle, &records, fields, units)?;
+        match format {
+            "toon" => write_toon(handle, &records, fields, units)?,
+            _ => write_csv(handle, &records, fields, units)?,
+        }
     }
 
     Ok(())

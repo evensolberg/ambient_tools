@@ -101,7 +101,11 @@ mod tests {
     #[test]
     fn from_bound_excludes_earlier() {
         let f = DateFilter::new(Some(NaiveDate::from_ymd_opt(2024, 5, 2).unwrap()), None);
-        let records = vec![record_with_date(MAY_1), record_with_date(MAY_2), record_with_date(MAY_3)];
+        let records = vec![
+            record_with_date(MAY_1),
+            record_with_date(MAY_2),
+            record_with_date(MAY_3),
+        ];
         let filtered = f.apply(records);
         assert_eq!(filtered.len(), 2);
         assert_eq!(filtered[0].dateutc, Some(MAY_2));
@@ -110,7 +114,11 @@ mod tests {
     #[test]
     fn to_bound_excludes_later() {
         let f = DateFilter::new(None, Some(NaiveDate::from_ymd_opt(2024, 5, 2).unwrap()));
-        let records = vec![record_with_date(MAY_1), record_with_date(MAY_2), record_with_date(MAY_3)];
+        let records = vec![
+            record_with_date(MAY_1),
+            record_with_date(MAY_2),
+            record_with_date(MAY_3),
+        ];
         let filtered = f.apply(records);
         assert_eq!(filtered.len(), 2);
     }
@@ -121,7 +129,11 @@ mod tests {
             Some(NaiveDate::from_ymd_opt(2024, 5, 2).unwrap()),
             Some(NaiveDate::from_ymd_opt(2024, 5, 2).unwrap()),
         );
-        let records = vec![record_with_date(MAY_1), record_with_date(MAY_2), record_with_date(MAY_3)];
+        let records = vec![
+            record_with_date(MAY_1),
+            record_with_date(MAY_2),
+            record_with_date(MAY_3),
+        ];
         let filtered = f.apply(records);
         assert_eq!(filtered.len(), 1);
         assert_eq!(filtered[0].dateutc, Some(MAY_2));
@@ -130,7 +142,10 @@ mod tests {
     #[test]
     fn record_without_date_passes_through() {
         let f = DateFilter::new(Some(NaiveDate::from_ymd_opt(2024, 5, 2).unwrap()), None);
-        let records = vec![WeatherDataPoint { dateutc: None, ..Default::default() }];
+        let records = vec![WeatherDataPoint {
+            dateutc: None,
+            ..Default::default()
+        }];
         assert_eq!(f.apply(records).len(), 1);
     }
 

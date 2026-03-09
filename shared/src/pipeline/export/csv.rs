@@ -8,12 +8,8 @@ use std::io::Write;
 use anyhow::Result;
 
 use crate::datapoint::{
-    data_point::WeatherDataPoint,
-    length::Length,
-    pressure::AirPressure,
-    speed::WindSpeed,
-    temperature::Temperature,
-    units::SystemOfUnits,
+    data_point::WeatherDataPoint, length::Length, pressure::AirPressure, speed::WindSpeed,
+    temperature::Temperature, units::SystemOfUnits,
 };
 use crate::pipeline::filter::ms_to_datetime;
 
@@ -106,55 +102,86 @@ pub fn write_csv<W: Write>(
 
 /// Render a single cell value for a given column name and record.
 #[allow(clippy::too_many_lines)]
-fn cell(r: &WeatherDataPoint, col: &str, units: SystemOfUnits) -> String {
+pub(super) fn cell(r: &WeatherDataPoint, col: &str, units: SystemOfUnits) -> String {
     match col {
         "date" => r
             .dateutc
-            .map(|ms| ms_to_datetime(ms).format("%Y-%m-%d %H:%M:%S UTC").to_string())
+            .map(|ms| {
+                ms_to_datetime(ms)
+                    .format("%Y-%m-%d %H:%M:%S UTC")
+                    .to_string()
+            })
             .unwrap_or_default(),
 
-        "temp_out" => r.temperature.map(|t: Temperature| {
-            if units == SystemOfUnits::SI {
-                format!("{:.1}", t.to_celsius())
-            } else {
-                format!("{:.1}", t.to_fahrenheit())
-            }
-        }).unwrap_or_default(),
+        "temp_out" => r
+            .temperature
+            .map(|t: Temperature| {
+                if units == SystemOfUnits::SI {
+                    format!("{:.1}", t.to_celsius())
+                } else {
+                    format!("{:.1}", t.to_fahrenheit())
+                }
+            })
+            .unwrap_or_default(),
 
         "humidity_out" => r.humidity.map(|h: u8| h.to_string()).unwrap_or_default(),
 
-        "wind_speed" => r.wind_speed.map(|w: WindSpeed| {
-            if units == SystemOfUnits::SI {
-                format!("{:.1}", w.to_kph())
-            } else {
-                format!("{:.1}", w.to_mph())
-            }
-        }).unwrap_or_default(),
-
-        "wind_speed_2min" => r.wind_speed_2min_average.map(|w: WindSpeed| {
-            if units == SystemOfUnits::SI { format!("{:.1}", w.to_kph()) }
-            else { format!("{:.1}", w.to_mph()) }
-        }).unwrap_or_default(),
-
-        "wind_speed_10min" => r.wind_speed_10min_average.map(|w: WindSpeed| {
-            if units == SystemOfUnits::SI { format!("{:.1}", w.to_kph()) }
-            else { format!("{:.1}", w.to_mph()) }
-        }).unwrap_or_default(),
-
-        "wind_gust" => r.wind_gust_speed.map(|w: WindSpeed| {
-            if units == SystemOfUnits::SI { format!("{:.1}", w.to_kph()) }
-            else { format!("{:.1}", w.to_mph()) }
-        }).unwrap_or_default(),
-
-        "wind_gust_daily_max" => r.wind_gust_speed_daily_max.map(|w: WindSpeed| {
-            if units == SystemOfUnits::SI { format!("{:.1}", w.to_kph()) }
-            else { format!("{:.1}", w.to_mph()) }
-        }).unwrap_or_default(),
-
-        "wind_dir" => r
-            .wind_direction
-            .map(|d| format!("{d}"))
+        "wind_speed" => r
+            .wind_speed
+            .map(|w: WindSpeed| {
+                if units == SystemOfUnits::SI {
+                    format!("{:.1}", w.to_kph())
+                } else {
+                    format!("{:.1}", w.to_mph())
+                }
+            })
             .unwrap_or_default(),
+
+        "wind_speed_2min" => r
+            .wind_speed_2min_average
+            .map(|w: WindSpeed| {
+                if units == SystemOfUnits::SI {
+                    format!("{:.1}", w.to_kph())
+                } else {
+                    format!("{:.1}", w.to_mph())
+                }
+            })
+            .unwrap_or_default(),
+
+        "wind_speed_10min" => r
+            .wind_speed_10min_average
+            .map(|w: WindSpeed| {
+                if units == SystemOfUnits::SI {
+                    format!("{:.1}", w.to_kph())
+                } else {
+                    format!("{:.1}", w.to_mph())
+                }
+            })
+            .unwrap_or_default(),
+
+        "wind_gust" => r
+            .wind_gust_speed
+            .map(|w: WindSpeed| {
+                if units == SystemOfUnits::SI {
+                    format!("{:.1}", w.to_kph())
+                } else {
+                    format!("{:.1}", w.to_mph())
+                }
+            })
+            .unwrap_or_default(),
+
+        "wind_gust_daily_max" => r
+            .wind_gust_speed_daily_max
+            .map(|w: WindSpeed| {
+                if units == SystemOfUnits::SI {
+                    format!("{:.1}", w.to_kph())
+                } else {
+                    format!("{:.1}", w.to_mph())
+                }
+            })
+            .unwrap_or_default(),
+
+        "wind_dir" => r.wind_direction.map(|d| format!("{d}")).unwrap_or_default(),
 
         "wind_dir_2min" => r
             .wind_direction_2min_average
@@ -171,15 +198,27 @@ fn cell(r: &WeatherDataPoint, col: &str, units: SystemOfUnits) -> String {
             .map(|d| format!("{d}"))
             .unwrap_or_default(),
 
-        "baro_rel" => r.indoor_relative_pressure.map(|p: AirPressure| {
-            if units == SystemOfUnits::SI { format!("{:.1}", p.to_hpa()) }
-            else { format!("{:.3}", p.to_inhg()) }
-        }).unwrap_or_default(),
+        "baro_rel" => r
+            .indoor_relative_pressure
+            .map(|p: AirPressure| {
+                if units == SystemOfUnits::SI {
+                    format!("{:.1}", p.to_hpa())
+                } else {
+                    format!("{:.3}", p.to_inhg())
+                }
+            })
+            .unwrap_or_default(),
 
-        "baro_abs" => r.indoor_absolute_pressure.map(|p: AirPressure| {
-            if units == SystemOfUnits::SI { format!("{:.1}", p.to_hpa()) }
-            else { format!("{:.3}", p.to_inhg()) }
-        }).unwrap_or_default(),
+        "baro_abs" => r
+            .indoor_absolute_pressure
+            .map(|p: AirPressure| {
+                if units == SystemOfUnits::SI {
+                    format!("{:.1}", p.to_hpa())
+                } else {
+                    format!("{:.3}", p.to_inhg())
+                }
+            })
+            .unwrap_or_default(),
 
         "solar_radiation" => r
             .solar_radiation
@@ -188,50 +227,104 @@ fn cell(r: &WeatherDataPoint, col: &str, units: SystemOfUnits) -> String {
 
         "uv" => r.uv_index.map(|u: u8| u.to_string()).unwrap_or_default(),
 
-        "hourly_rain" => r.rain_hourly_rate.map(|l: Length| {
-            if units == SystemOfUnits::SI { format!("{:.1}", l.to_millimeters()) }
-            else { format!("{:.3}", l.to_inches()) }
-        }).unwrap_or_default(),
+        "hourly_rain" => r
+            .rain_hourly_rate
+            .map(|l: Length| {
+                if units == SystemOfUnits::SI {
+                    format!("{:.1}", l.to_millimeters())
+                } else {
+                    format!("{:.3}", l.to_inches())
+                }
+            })
+            .unwrap_or_default(),
 
-        "event_rain" => r.rain_event_amount.map(|l: Length| {
-            if units == SystemOfUnits::SI { format!("{:.1}", l.to_millimeters()) }
-            else { format!("{:.3}", l.to_inches()) }
-        }).unwrap_or_default(),
+        "event_rain" => r
+            .rain_event_amount
+            .map(|l: Length| {
+                if units == SystemOfUnits::SI {
+                    format!("{:.1}", l.to_millimeters())
+                } else {
+                    format!("{:.3}", l.to_inches())
+                }
+            })
+            .unwrap_or_default(),
 
-        "daily_rain" => r.rain_daily.map(|l: Length| {
-            if units == SystemOfUnits::SI { format!("{:.1}", l.to_millimeters()) }
-            else { format!("{:.3}", l.to_inches()) }
-        }).unwrap_or_default(),
+        "daily_rain" => r
+            .rain_daily
+            .map(|l: Length| {
+                if units == SystemOfUnits::SI {
+                    format!("{:.1}", l.to_millimeters())
+                } else {
+                    format!("{:.3}", l.to_inches())
+                }
+            })
+            .unwrap_or_default(),
 
-        "weekly_rain" => r.rain_weekly.map(|l: Length| {
-            if units == SystemOfUnits::SI { format!("{:.1}", l.to_millimeters()) }
-            else { format!("{:.3}", l.to_inches()) }
-        }).unwrap_or_default(),
+        "weekly_rain" => r
+            .rain_weekly
+            .map(|l: Length| {
+                if units == SystemOfUnits::SI {
+                    format!("{:.1}", l.to_millimeters())
+                } else {
+                    format!("{:.3}", l.to_inches())
+                }
+            })
+            .unwrap_or_default(),
 
-        "monthly_rain" => r.rain_monthly.map(|l: Length| {
-            if units == SystemOfUnits::SI { format!("{:.1}", l.to_millimeters()) }
-            else { format!("{:.3}", l.to_inches()) }
-        }).unwrap_or_default(),
+        "monthly_rain" => r
+            .rain_monthly
+            .map(|l: Length| {
+                if units == SystemOfUnits::SI {
+                    format!("{:.1}", l.to_millimeters())
+                } else {
+                    format!("{:.3}", l.to_inches())
+                }
+            })
+            .unwrap_or_default(),
 
-        "yearly_rain" => r.rain_yearly.map(|l: Length| {
-            if units == SystemOfUnits::SI { format!("{:.1}", l.to_millimeters()) }
-            else { format!("{:.3}", l.to_inches()) }
-        }).unwrap_or_default(),
+        "yearly_rain" => r
+            .rain_yearly
+            .map(|l: Length| {
+                if units == SystemOfUnits::SI {
+                    format!("{:.1}", l.to_millimeters())
+                } else {
+                    format!("{:.3}", l.to_inches())
+                }
+            })
+            .unwrap_or_default(),
 
-        "total_rain" => r.rain_total.map(|l: Length| {
-            if units == SystemOfUnits::SI { format!("{:.1}", l.to_millimeters()) }
-            else { format!("{:.3}", l.to_inches()) }
-        }).unwrap_or_default(),
+        "total_rain" => r
+            .rain_total
+            .map(|l: Length| {
+                if units == SystemOfUnits::SI {
+                    format!("{:.1}", l.to_millimeters())
+                } else {
+                    format!("{:.3}", l.to_inches())
+                }
+            })
+            .unwrap_or_default(),
 
-        "last_24h_rain" => r.last_24_hour_rain.map(|l: Length| {
-            if units == SystemOfUnits::SI { format!("{:.1}", l.to_millimeters()) }
-            else { format!("{:.3}", l.to_inches()) }
-        }).unwrap_or_default(),
+        "last_24h_rain" => r
+            .last_24_hour_rain
+            .map(|l: Length| {
+                if units == SystemOfUnits::SI {
+                    format!("{:.1}", l.to_millimeters())
+                } else {
+                    format!("{:.3}", l.to_inches())
+                }
+            })
+            .unwrap_or_default(),
 
-        "temp_in" => r.temp.map(|t: Temperature| {
-            if units == SystemOfUnits::SI { format!("{:.1}", t.to_celsius()) }
-            else { format!("{:.1}", t.to_fahrenheit()) }
-        }).unwrap_or_default(),
+        "temp_in" => r
+            .temp
+            .map(|t: Temperature| {
+                if units == SystemOfUnits::SI {
+                    format!("{:.1}", t.to_celsius())
+                } else {
+                    format!("{:.1}", t.to_fahrenheit())
+                }
+            })
+            .unwrap_or_default(),
 
         "humidity_in" => r
             .indoor_humidity_percent
@@ -248,10 +341,7 @@ fn cell(r: &WeatherDataPoint, col: &str, units: SystemOfUnits) -> String {
 mod tests {
     use super::*;
     use crate::datapoint::{
-        length::Length,
-        pressure::AirPressure,
-        speed::WindSpeed,
-        temperature::Temperature,
+        length::Length, pressure::AirPressure, speed::WindSpeed, temperature::Temperature,
     };
 
     fn record_with_basics() -> WeatherDataPoint {
@@ -315,9 +405,18 @@ mod tests {
 
     #[test]
     fn missing_field_produces_empty_cell() {
-        let rec = WeatherDataPoint { dateutc: Some(1_714_521_600_000), ..Default::default() };
+        let rec = WeatherDataPoint {
+            dateutc: Some(1_714_521_600_000),
+            ..Default::default()
+        };
         let mut buf = Vec::new();
-        write_csv(&mut buf, &[rec], Some(&["temp_out", "humidity_out"]), SystemOfUnits::Imperial).unwrap();
+        write_csv(
+            &mut buf,
+            &[rec],
+            Some(&["temp_out", "humidity_out"]),
+            SystemOfUnits::Imperial,
+        )
+        .unwrap();
         let csv = String::from_utf8(buf).unwrap();
         // Both fields are None → two empty cells per row
         let row = csv.lines().nth(1).unwrap();
@@ -328,7 +427,13 @@ mod tests {
     fn unknown_field_produces_empty_cell() {
         let records = vec![record_with_basics()];
         let mut buf = Vec::new();
-        write_csv(&mut buf, &records, Some(&["nonexistent"]), SystemOfUnits::Imperial).unwrap();
+        write_csv(
+            &mut buf,
+            &records,
+            Some(&["nonexistent"]),
+            SystemOfUnits::Imperial,
+        )
+        .unwrap();
         let csv = String::from_utf8(buf).unwrap();
         let row = csv.lines().nth(1).unwrap();
         // The csv crate may quote empty strings as "" — either is acceptable

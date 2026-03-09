@@ -71,6 +71,14 @@ pub fn build_cli() -> Command {
                              hourly_rain, daily_rain, temp_in, humidity_in.",
                         )
                         .action(clap::ArgAction::Set),
+                )
+                .arg(
+                    Arg::new("format")
+                        .long("format")
+                        .help("Output format: 'csv' or 'toon' [default: csv].")
+                        .action(clap::ArgAction::Set)
+                        .value_parser(["csv", "toon"])
+                        .default_value("csv"),
                 ),
         )
         .subcommand(

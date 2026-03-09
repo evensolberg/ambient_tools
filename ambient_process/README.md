@@ -63,7 +63,7 @@ Commands:
 
 ### `convert` subcommand
 
-Reads one or more JSON data files (glob patterns accepted), optionally filters by date range, and writes a combined CSV.
+Reads one or more JSON data files (glob patterns accepted), optionally filters by date range, and writes a combined CSV or TOON file.
 
 ```text
 ambient_process convert [OPTIONS] <FILES>...
@@ -72,11 +72,12 @@ Arguments:
   <FILES>    Input JSON files or glob patterns (e.g. 'data/*.json')
 
 Options:
-  -o, --output <FILE>        Output CSV file. Writes to stdout if omitted.
-      --from <DATE>          Include records on or after this date (YYYY-MM-DD)
-      --to <DATE>            Include records on or before this date (YYYY-MM-DD)
-  -u, --units <si|imperial>  Unit system for exported values [default: imperial]
-  -f, --fields <FIELDS>      Comma-separated field list, or 'all' for every field
+  -o, --output <FILE>          Output file. Writes to stdout if omitted.
+      --from <DATE>            Include records on or after this date (YYYY-MM-DD)
+      --to <DATE>              Include records on or before this date (YYYY-MM-DD)
+  -u, --units <si|imperial>    Unit system for exported values [default: imperial]
+  -f, --fields <FIELDS>        Comma-separated field list, or 'all' for every field
+      --format <csv|toon>      Output format [default: csv]
 ```
 
 Example — convert all of February to a CSV in SI units:
@@ -148,6 +149,25 @@ Use `--fields all` to export every available field:
 ```
 
 Available fields beyond the defaults: `wind_speed_2min`, `wind_speed_10min`, `wind_gust_daily_max`, `wind_dir_2min`, `wind_dir_10min`, `wind_gust_dir`, `baro_abs`, `event_rain`, `weekly_rain`, `monthly_rain`, `yearly_rain`, `total_rain`, `last_24h_rain`, `co2`.
+
+#### TOON format
+
+[TOON (Token-Oriented Object Notation)](https://github.com/evensolberg/json2toon) is a compact tabular format well-suited for feeding weather records into LLMs. A uniform array of objects is encoded as a header line followed by data rows:
+
+```text
+{date,temp_in,humidity_in,baro_rel,daily_rain}
+2026-02-01 08:00:00 UTC,65.5,50,29.569,0.000
+2026-02-01 08:05:00 UTC,65.5,50,29.575,0.000
+```
+
+This is 30–60% more token-efficient than the equivalent JSON. Use `--format toon` to enable it:
+
+```shell
+ambient_process convert 'data/2026-02-*.json' \
+  --fields date,temp_in,humidity_in,baro_rel,daily_rain \
+  --format toon \
+  --output february.toon
+```
 
 ---
 

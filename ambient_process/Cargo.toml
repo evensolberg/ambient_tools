@@ -1,6 +1,6 @@
 [package]
 name = "ambient_process"
-version = "0.1.0"
+version = "0.2.0"
 description = "Process and convert Ambient Weather JSON data files."
 authors.workspace = true
 edition.workspace = true
