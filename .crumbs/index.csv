@@ -11,6 +11,7 @@ at-8r6,Add a tool or parameter to transform dates and times between UTC and loca
 at-ae8,Add input validation for keys and MAC address,open,feature,2,ambient-download|validation,2026-03-08,2026-03-08,,
 at-ap3,Double unwrap panic risk in weather/download.rs,closed,bug,0,robustness|panic,2026-03-08,2026-03-08,"Replaced .unwrap() on LocalResult with exhaustive match: Single returns the value, Ambiguous takes the earlier occurrence, None falls back to arithmetic addition",
 at-bsr,Add -n option to specify the number of days to download,closed,feature,1,ambient-download,2026-03-08,2026-03-08,"weather subcommand already has --days/-d flag (value_parser u16, range 1..=1095)",
+at-c7p,Build data processing pipeline on top of datapoint types,open,feature,4,shared|datapoint|json|reporting,2026-03-08,2026-03-08,,
 at-ema,Config struct Serialize impl exposes credentials,open,task,2,security|maintainability,2026-03-08,2026-03-08,,
 at-g36,Figure out time offset automagically,open,feature,2,ambient-download|timezone,2026-03-08,2026-03-08,,
 at-hsw,No MAC address format validation,open,bug,1,security|validation,2026-03-08,2026-03-08,,
