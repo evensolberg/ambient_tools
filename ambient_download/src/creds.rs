@@ -1,7 +1,8 @@
 //! Contains the `Credentials` struct and its implementation.
 
+use anyhow::{bail, Result};
 use chrono::{DateTime, FixedOffset, Local};
-use std::{error::Error, fmt, str::FromStr};
+use std::{fmt, str::FromStr};
 
 /// Returns true if `key` is a valid 64-character lowercase hex string.
 fn is_valid_api_key(key: &str) -> bool {
@@ -108,7 +109,7 @@ impl Query {
     /// let creds = Credentials::from_env().unwrap();
     /// ```
     #[allow(dead_code)]
-    pub fn from_env() -> Result<Self, Box<dyn Error>> {
+    pub fn from_env() -> Result<Self> {
         Ok(Self {
             api_key: std::env::var("AMBIENT_WEATHER_API_KEY")?,
             app_key: std::env::var("AMBIENT_WEATHER_APP_KEY")?,
@@ -205,26 +206,22 @@ impl Query {
     ///
     /// Returns an error if `api_key` or `app_key` are missing or not 64-character hex strings,
     /// or if `mac_address` is present but not a valid MAC address.
-    pub fn validate(&self) -> Result<(), Box<dyn Error>> {
+    pub fn validate(&self) -> Result<()> {
         if self.api_key.is_empty() {
-            return Err("API key is not set. Use --api-key or AMBIENT_WEATHER_API_KEY.".into());
+            bail!("API key is not set. Use --api-key or AMBIENT_WEATHER_API_KEY.");
         }
         if !is_valid_api_key(&self.api_key) {
-            return Err("API key must be a 64-character hexadecimal string.".into());
+            bail!("API key must be a 64-character hexadecimal string.");
         }
         if self.app_key.is_empty() {
-            return Err(
-                "Application key is not set. Use --app-key or AMBIENT_WEATHER_APP_KEY.".into(),
-            );
+            bail!("Application key is not set. Use --app-key or AMBIENT_WEATHER_APP_KEY.");
         }
         if !is_valid_api_key(&self.app_key) {
-            return Err("Application key must be a 64-character hexadecimal string.".into());
+            bail!("Application key must be a 64-character hexadecimal string.");
         }
         if let Some(mac) = &self.mac_address {
             if !mac.is_empty() && !is_valid_mac(mac) {
-                return Err(
-                    format!("MAC address '{mac}' is invalid. Expected XX:XX:XX:XX:XX:XX.").into(),
-                );
+                bail!("MAC address '{mac}' is invalid. Expected XX:XX:XX:XX:XX:XX.");
             }
         }
         Ok(())

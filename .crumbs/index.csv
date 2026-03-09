@@ -25,5 +25,5 @@ at-qf0,Add option to write MAC address to config after device download,open,feat
 at-u0j,Config TOML file stores credentials in plaintext,closed,task,1,security|config,2026-03-08,2026-03-08,to_file() now logs a warn! after writing reminding user to chmod 600 and exclude from VCS,
 at-we5,Figure out how to write pretty JSON,open,feature,2,ambient-download,2026-03-08,2026-03-08,,
 at-wy5,No API/App key format validation,closed,bug,1,security|validation,2026-03-08,2026-03-08,is_valid_api_key() checks 64-char hex; called via Query::validate() for both api_key and app_key before API requests,
-at-xxi,Replace Box<dyn Error> with typed errors,open,task,2,maintainability|error-handling,2026-03-08,2026-03-08,,
+at-xxi,Replace Box<dyn Error> with typed errors,closed,task,2,maintainability|error-handling,2026-03-08,2026-03-08,"shared uses thiserror: ConfigError enum with Read/Write/Parse/Serialize variants, returned from all config.rs functions. ambient_download uses anyhow::Result throughout — bail!() replaces string .into() errors, .context() adds callsite descriptions to ? propagations.",
 at-zbk,Look into using timezone data for offsets instead of fixed offsets,closed,task,1,ambient-download|timezone,2026-03-08,2026-03-08,Same as at-pcc — get_offset_from_tz() uses chrono_tz::Tz with dst_offset() for correct DST-aware offsets,

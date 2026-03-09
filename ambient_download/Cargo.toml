@@ -1,6 +1,6 @@
 [package]
 name = "ambient_download"
-version = "0.8.3"
+version = "0.8.4"
 description = "Download Ambient Weather data in JSON format."
 authors.workspace = true
 edition.workspace = true
@@ -15,6 +15,7 @@ license = false
 eula = false
 
 [dependencies]
+anyhow = "1"
 chrono.workspace = true
 chrono-tz.workspace = true
 clap.workspace = true

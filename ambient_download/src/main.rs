@@ -5,13 +5,12 @@ mod device;
 mod query;
 mod weather;
 
+use anyhow::Result;
 use chrono::{NaiveDateTime, Offset, TimeZone, Utc};
 use shared::config;
 
 use crate::detail::DetailLevel::{self, Quiet};
 use crate::query::QueryType;
-
-use std::error::Error;
 
 // Logging
 use env_logger::{Builder, Target};
@@ -19,7 +18,7 @@ use log::LevelFilter;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// This is where the magic happens.
-fn run() -> Result<(), Box<dyn Error>> {
+fn run() -> Result<()> {
     // Set up the command line. Ref https://docs.rs/clap for details.
     let mut cli_cmd = cli::build_cli();
     let cli_args = cli_cmd.clone().get_matches();
@@ -120,7 +119,7 @@ fn main() {
 
 /// Gets the name of the output folder from the CLI arguments.
 /// Checks if the folder exists, and if it doesn't atttempt to create it.
-fn check_or_create_output_folder(output_folder: &str) -> Result<(), std::io::Error> {
+fn check_or_create_output_folder(output_folder: &str) -> Result<()> {
     if !std::path::Path::new(&output_folder).exists() {
         std::fs::create_dir_all(output_folder)?;
     }

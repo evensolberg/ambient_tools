@@ -1,5 +1,6 @@
 //! Implement the `Config` struct and related functions. This is used in the `ambient_download` and `tz_detect` crates.
 
+use crate::error::ConfigError;
 use clap::ArgMatches;
 use serde::{Deserialize, Serialize};
 use std::fmt;
@@ -90,14 +91,15 @@ impl Config {
     /// use shared::config::Config;
     /// let config = Config::from_file("ambient_download.toml").expect("Unable to read configuration file.");
     /// ```
-    pub fn from_file(filename: &str) -> Result<Self, Box<dyn std::error::Error>> {
-        let config_str = std::fs::read_to_string(filename)
-            .map_err(|e| format!("Cannot read config file '{filename}': {e}."))?;
-        let config: Self = toml::from_str(&config_str).map_err(|e| {
-            format!(
-                "Invalid config file '{filename}': {e}. \
-                 Run 'newconfig' to create a template."
-            )
+    pub fn from_file(filename: &str) -> Result<Self, ConfigError> {
+        let config_str =
+            std::fs::read_to_string(filename).map_err(|e| ConfigError::Read {
+                path: filename.to_string(),
+                source: e,
+            })?;
+        let config: Self = toml::from_str(&config_str).map_err(|e| ConfigError::Parse {
+            path: filename.to_string(),
+            source: e,
         })?;
 
         log::debug!("Read configuration from {filename}: {config:?}");
@@ -182,14 +184,18 @@ impl Config {
     /// let config = Config::new();
     /// config.to_file("ambient_download.toml").expect("Unable to write configuration file.");
     /// ```
-    pub fn to_file(&self, filename: &str) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn to_file(&self, filename: &str) -> Result<(), ConfigError> {
         if !std::path::Path::new(&filename).exists() {
             Self::new_config_file(filename)?;
             log::debug!("Created new configuration file {filename}");
         }
 
-        let config_str = toml::to_string(&ConfigToml::from(self))?;
-        std::fs::write(filename, &config_str)?;
+        let config_str = toml::to_string(&ConfigToml::from(self))
+            .map_err(|e| ConfigError::Serialize(e.to_string()))?;
+        std::fs::write(filename, &config_str).map_err(|e| ConfigError::Write {
+            path: filename.to_string(),
+            source: e,
+        })?;
 
         log::debug!("Wrote configuration to {filename}.");
         log::warn!(
@@ -220,11 +226,15 @@ impl Config {
     /// use shared::config::Config;
     /// Config::new_config_file("ambient_download.toml").expect("Unable to create configuration file.");
     /// ```
-    pub fn new_config_file(filename: &str) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn new_config_file(filename: &str) -> Result<(), ConfigError> {
         let config = Self::new();
 
-        let config_str = toml::to_string(&ConfigToml::from(&config))?;
-        std::fs::write(filename, config_str)?;
+        let config_str = toml::to_string(&ConfigToml::from(&config))
+            .map_err(|e| ConfigError::Serialize(e.to_string()))?;
+        std::fs::write(filename, config_str).map_err(|e| ConfigError::Write {
+            path: filename.to_string(),
+            source: e,
+        })?;
 
         Ok(())
     }

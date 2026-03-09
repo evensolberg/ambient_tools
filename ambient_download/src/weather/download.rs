@@ -1,5 +1,6 @@
 //! Downloads the weather information from the Ambient Weather API.
 
+use anyhow::{bail, Context, Result};
 use std::io::Write;
 use std::thread::sleep;
 
@@ -11,7 +12,6 @@ use chrono_tz::OffsetComponents;
 use clap::parser::ValueSource;
 
 use shared::config;
-use std::error::Error;
 
 /// Returns the recommended minimum sleep time in seconds for a given number of days.
 /// Scales up to avoid rate limiting on larger downloads.
@@ -52,7 +52,7 @@ pub fn get_weather_data(
     config: &config::Config,
     creds: &creds::Query,
     detail_level: DetailLevel,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     if detail_level > DetailLevel::Quiet {
         log::info!("Getting weather information.");
     }
@@ -76,8 +76,7 @@ pub fn get_weather_data(
         let date_to_parse = format!("{date} 23:59:30 {tz_offset}",);
 
         let Ok(parsed_date) = DateTime::parse_from_str(&date_to_parse, "%F %T %:z") else {
-            let err_msg = format!("Could not parse {date_to_parse}.");
-            return Err(err_msg.into());
+            bail!("Could not parse date '{date_to_parse}'.");
         };
 
         parsed_date.with_timezone(&Local)
@@ -120,7 +119,7 @@ pub fn get_weather_data(
 pub fn write_weather_info_to_file(
     filename: &str,
     weather_info: &str,
-) -> Result<usize, std::io::Error> {
+) -> Result<usize> {
     let mut file = std::fs::File::create(filename)?;
     let res = file.write(weather_info.as_bytes())?;
 
@@ -163,13 +162,13 @@ fn download_weather(
     config: &config::Config,
     sleep_time: u64,
     detail_level: DetailLevel,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     if detail_level > DetailLevel::Quiet {
         log::info!("Getting weather information for {num_days} days starting at {start_date}.");
     }
 
     if num_days > 365 * 3 {
-        return Err("The maximum number of days is 1095 (3 years).".into());
+        bail!("The maximum number of days is 1095 (3 years).");
     }
 
     let mut date = *start_date;
@@ -193,7 +192,7 @@ fn download_weather(
 
     for d in 0..num_days {
         let Some(mac_address) = &creds.mac_address else {
-            return Err("MAC address not provided.".into());
+            bail!("MAC address not provided.");
         };
 
         let url = format!(
@@ -201,25 +200,16 @@ fn download_weather(
             creds.api_key, creds.app_key, date.to_rfc3339()
         );
 
-        let res = client.get(url).send();
-        let weather_info;
-        match res {
-            Ok(resp) => {
-                if resp.status().is_success() {
-                    weather_info = resp.text()?;
-                } else {
-                    let err_msg = format!(
-                        "Error downloading weather information. Status code: {}.",
-                        resp.status().as_str()
-                    );
-                    return Err(err_msg.into());
-                }
-            }
-            Err(e) => {
-                let err_msg = format!("Error downloading weather information: {e}.");
-                return Err(err_msg.into());
-            }
+        let resp = client
+            .get(url)
+            .send()
+            .context("Failed to connect to Ambient Weather API")?;
+
+        if !resp.status().is_success() {
+            bail!("API returned error status: {}", resp.status());
         }
+
+        let weather_info = resp.text().context("Failed to read weather response")?;
 
         let full_path = format!("{output_folder}/{}", filename_from_datetime(&date, "json"));
         let bytes_written = write_weather_info_to_file(&full_path, &weather_info)?;
@@ -263,8 +253,10 @@ pub fn end_of_day(date: &DateTime<Local>) -> DateTime<Local> {
 }
 
 /// Calculate the offset from UTC for a given timezone based on the IANA timezone input as a string
-fn get_offset_from_tz(tz_name: &str) -> Result<String, Box<dyn std::error::Error>> {
-    let tz: chrono_tz::Tz = tz_name.parse()?;
+fn get_offset_from_tz(tz_name: &str) -> Result<String> {
+    let tz: chrono_tz::Tz = tz_name
+        .parse()
+        .with_context(|| format!("Unknown timezone '{tz_name}'"))?;
     let local_time = chrono::Local::now();
     let tz_offset = tz.offset_from_utc_datetime(&local_time.naive_utc());
     let offset = tz_offset.base_utc_offset() + tz_offset.dst_offset();

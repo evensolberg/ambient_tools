@@ -1,7 +1,7 @@
 ---
 id: at-xxi
 title: Replace Box<dyn Error> with typed errors
-status: open
+status: closed
 type: task
 priority: 2
 tags:
@@ -9,7 +9,7 @@ tags:
 - error-handling
 created: 2026-03-08
 updated: 2026-03-08
-closed_reason: ''
+closed_reason: 'shared uses thiserror: ConfigError enum with Read/Write/Parse/Serialize variants, returned from all config.rs functions. ambient_download uses anyhow::Result throughout — bail!() replaces string .into() errors, .context() adds callsite descriptions to ? propagations.'
 dependencies: []
 ---
 

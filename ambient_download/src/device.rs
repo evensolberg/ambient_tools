@@ -1,11 +1,11 @@
 //! Gets device information.
 
+use anyhow::{Context, Result};
 use std::io::Write;
 
 use shared::config;
 
 use crate::{creds, creds::Query, detail::DetailLevel};
-use std::error::Error;
 
 /// Get the device information and write it to a file.
 ///
@@ -33,7 +33,7 @@ pub fn get_device_info(
     config: &config::Config,
     creds: &creds::Query,
     detail_level: DetailLevel,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     if detail_level > DetailLevel::Quiet {
         log::info!("Getting device information.");
     }
@@ -77,7 +77,7 @@ fn download_device_info_to_file(
     dev_info_file_name: &str,
     detail_level: DetailLevel,
     creds: &Query,
-) -> Result<usize, Box<dyn Error>> {
+) -> Result<usize> {
     crate::check_or_create_output_folder(output_folder)?;
 
     let url = format!(
@@ -88,8 +88,14 @@ fn download_device_info_to_file(
     let client = reqwest::blocking::Client::builder()
         .timeout(std::time::Duration::from_secs(30))
         .user_agent("ambient-downloader")
-        .build()?;
-    let device_info = client.get(url).send()?.text()?;
+        .build()
+        .context("Failed to build HTTP client")?;
+    let device_info = client
+        .get(url)
+        .send()
+        .context("Failed to connect to Ambient Weather API")?
+        .text()
+        .context("Failed to read device info response")?;
 
     if detail_level > DetailLevel::Normal {
         log::info!("{device_info}");
