@@ -16,6 +16,7 @@ struct ConfigToml<'a> {
     mac_address: &'a str,
     output_folder: &'a str,
     filename_pattern: &'a str,
+    station_name: &'a str,
     tz_name: &'a str,
     detail_level: u8,
     limit: u16,
@@ -30,6 +31,7 @@ impl<'a> From<&'a Config> for ConfigToml<'a> {
             mac_address: &c.mac_address,
             output_folder: &c.output_folder,
             filename_pattern: &c.filename_pattern,
+            station_name: &c.station_name,
             tz_name: &c.tz_name,
             detail_level: c.detail_level,
             limit: c.limit,
@@ -54,9 +56,15 @@ pub struct Config {
     pub output_folder: String,
 
     /// strftime-style pattern for output filenames. Supports `{mac}` as a
-    /// placeholder for the sanitized MAC address (colons replaced with dashes).
-    /// Example: `%Y/%m/{mac}-%Y-%m-%d.json`
+    /// placeholder for the sanitized MAC address (colons replaced with dashes),
+    /// and `{station}` which resolves to `station_name` if set, or the
+    /// normalized MAC address otherwise.
+    /// Example: `%Y/%m/{station}-%Y-%m-%d.json`
     pub filename_pattern: String,
+
+    /// Optional human-readable station name used as `{station}` in filename
+    /// patterns. Falls back to the normalized MAC address when empty.
+    pub station_name: String,
 
     /// Timezone in IANA format
     pub tz_name: String,
@@ -166,10 +174,16 @@ impl Config {
                     .get_one::<String>("filename-pattern")
                     .unwrap_or(&String::from("%Y-%m-%d.json")),
             );
+            config.station_name.clone_from(
+                weather_args
+                    .get_one::<String>("station-name")
+                    .unwrap_or(&String::new()),
+            );
         } else {
             config.tz_name = iana_time_zone::get_timezone().unwrap_or_default();
             config.limit = 288;
             config.filename_pattern = String::from("%Y-%m-%d.json");
+            config.station_name = String::new();
         }
 
         if let Some(weather_args) = cli_args.subcommand_matches("weather") {
@@ -268,12 +282,13 @@ impl Config {
 impl serde::Serialize for Config {
     fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         use serde::ser::SerializeStruct;
-        let mut s = serializer.serialize_struct("Config", 9)?;
+        let mut s = serializer.serialize_struct("Config", 10)?;
         s.serialize_field("app_key", "[REDACTED]")?;
         s.serialize_field("api_key", "[REDACTED]")?;
         s.serialize_field("mac_address", &self.mac_address)?;
         s.serialize_field("output_folder", &self.output_folder)?;
         s.serialize_field("filename_pattern", &self.filename_pattern)?;
+        s.serialize_field("station_name", &self.station_name)?;
         s.serialize_field("tz_name", &self.tz_name)?;
         s.serialize_field("detail_level", &self.detail_level)?;
         s.serialize_field("limit", &self.limit)?;
@@ -291,6 +306,7 @@ impl fmt::Debug for Config {
             .field("mac_address", &self.mac_address)
             .field("output_folder", &self.output_folder)
             .field("filename_pattern", &self.filename_pattern)
+            .field("station_name", &self.station_name)
             .field("tz_name", &self.tz_name)
             .field("detail_level", &self.detail_level)
             .field("limit", &self.limit)
@@ -309,6 +325,7 @@ impl Default for Config {
             mac_address: String::new(),
             output_folder: String::from("."),
             filename_pattern: String::from("%Y-%m-%d.json"),
+            station_name: String::new(),
             tz_name: iana_time_zone::get_timezone().unwrap_or_default(),
             detail_level: 1,
             limit: 288,

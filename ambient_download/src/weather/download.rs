@@ -96,7 +96,16 @@ pub fn get_weather_data(
         config.sleep_time
     };
 
-    download_weather(&dl_date, num_days, creds, config, sleep_time, detail_level, &config.filename_pattern)?;
+    download_weather(
+        &dl_date,
+        num_days,
+        creds,
+        config,
+        sleep_time,
+        detail_level,
+        &config.filename_pattern,
+        &config.station_name,
+    )?;
 
     Ok(())
 }
@@ -128,20 +137,27 @@ pub fn write_weather_info_to_file(filename: &str, weather_info: &str) -> Result<
     Ok(res)
 }
 
-/// Format an output filename from a strftime pattern, a date, and a MAC address.
+/// Format an output filename from a strftime pattern, a date, a MAC address,
+/// and an optional station name.
 ///
-/// The `{mac}` token in the pattern is replaced with the sanitized MAC address
-/// (colons or hyphens stripped, then reformatted as `AA-BB-CC-DD-EE-FF`).
-/// The result is then passed through `chrono`'s strftime formatter.
+/// Tokens replaced before strftime formatting:
+/// - `{mac}` → normalized MAC address (`AA-BB-CC-DD-EE-FF`)
+/// - `{station}` → `station_name` if non-empty, otherwise the normalized MAC
 ///
 /// # Examples
 ///
 /// ```
-/// use chrono::Local;
 /// // "%Y-%m-%d.json"  → "2024-05-01.json"
-/// // "{mac}-%Y-%m-%d.json" with mac "AA:BB:CC:DD:EE:FF" → "AA-BB-CC-DD-EE-FF-2024-05-01.json"
+/// // "{mac}-%Y-%m-%d.json" + "AA:BB:CC:DD:EE:FF" → "AA-BB-CC-DD-EE-FF-2024-05-01.json"
+/// // "{station}-%Y-%m-%d.json" + station "roof" → "roof-2024-05-01.json"
+/// // "{station}-%Y-%m-%d.json" + no station → "AA-BB-CC-DD-EE-FF-2024-05-01.json"
 /// ```
-pub fn format_output_filename(pattern: &str, date: &DateTime<Local>, mac: &str) -> String {
+pub fn format_output_filename(
+    pattern: &str,
+    date: &DateTime<Local>,
+    mac: &str,
+    station_name: &str,
+) -> String {
     let normalized = mac
         .chars()
         .filter(|c| c.is_ascii_hexdigit())
@@ -156,8 +172,17 @@ pub fn format_output_filename(pattern: &str, date: &DateTime<Local>, mac: &str) 
         .collect::<Vec<_>>()
         .join("-");
 
-    let with_mac = pattern.replace("{mac}", &mac_dashed);
-    date.format(&with_mac).to_string()
+    let station = if station_name.is_empty() {
+        mac_dashed.as_str()
+    } else {
+        station_name
+    };
+
+    let with_tokens = pattern
+        .replace("{mac}", &mac_dashed)
+        .replace("{station}", station);
+
+    date.format(&with_tokens).to_string()
 }
 
 /// Download the weather information for a number of days, starting with the date specified
@@ -169,6 +194,7 @@ fn download_weather(
     sleep_time: u64,
     detail_level: DetailLevel,
     filename_pattern: &str,
+    station_name: &str,
 ) -> Result<()> {
     if detail_level > DetailLevel::Quiet {
         log::info!("Getting weather information for {num_days} days starting at {start_date}.");
@@ -218,7 +244,7 @@ fn download_weather(
 
         let weather_info = resp.text().context("Failed to read weather response")?;
 
-        let rel_path = format_output_filename(filename_pattern, &date, mac_address);
+        let rel_path = format_output_filename(filename_pattern, &date, mac_address, station_name);
         let full_path = format!("{output_folder}/{rel_path}");
 
         // Create any subdirectories implied by the pattern (e.g. %Y/%m/).
@@ -292,7 +318,7 @@ mod tests {
         let dt = chrono::Local
             .with_ymd_and_hms(2024, 5, 1, 12, 0, 0)
             .unwrap();
-        assert_eq!(format_output_filename("%Y-%m-%d.json", &dt, ""), "2024-05-01.json");
+        assert_eq!(format_output_filename("%Y-%m-%d.json", &dt, "", ""), "2024-05-01.json");
     }
 
     #[test]
@@ -340,7 +366,7 @@ mod tests {
     fn format_output_filename_default_pattern() {
         let dt = chrono::Local.with_ymd_and_hms(2024, 5, 1, 12, 0, 0).unwrap();
         assert_eq!(
-            format_output_filename("%Y-%m-%d.json", &dt, ""),
+            format_output_filename("%Y-%m-%d.json", &dt, "", ""),
             "2024-05-01.json"
         );
     }
@@ -348,29 +374,50 @@ mod tests {
     #[test]
     fn format_output_filename_with_mac_colon_separated() {
         let dt = chrono::Local.with_ymd_and_hms(2024, 5, 1, 0, 0, 0).unwrap();
-        let result = format_output_filename("{mac}-%Y-%m-%d.json", &dt, "AA:BB:CC:DD:EE:FF");
+        let result = format_output_filename("{mac}-%Y-%m-%d.json", &dt, "AA:BB:CC:DD:EE:FF", "");
         assert_eq!(result, "AA-BB-CC-DD-EE-FF-2024-05-01.json");
     }
 
     #[test]
     fn format_output_filename_with_mac_no_separator() {
         let dt = chrono::Local.with_ymd_and_hms(2024, 5, 1, 0, 0, 0).unwrap();
-        let result = format_output_filename("{mac}-%Y-%m-%d.json", &dt, "aabbccddeeff");
+        let result = format_output_filename("{mac}-%Y-%m-%d.json", &dt, "aabbccddeeff", "");
         assert_eq!(result, "AA-BB-CC-DD-EE-FF-2024-05-01.json");
     }
 
     #[test]
     fn format_output_filename_subdir_pattern() {
         let dt = chrono::Local.with_ymd_and_hms(2024, 5, 1, 0, 0, 0).unwrap();
-        let result = format_output_filename("%Y/%m/%Y-%m-%d.json", &dt, "");
+        let result = format_output_filename("%Y/%m/%Y-%m-%d.json", &dt, "", "");
         assert_eq!(result, "2024/05/2024-05-01.json");
     }
 
     #[test]
     fn format_output_filename_mac_and_subdir() {
         let dt = chrono::Local.with_ymd_and_hms(2024, 5, 1, 0, 0, 0).unwrap();
-        let result = format_output_filename("%Y/%m/{mac}-%Y-%m-%d.json", &dt, "AA:BB:CC:DD:EE:FF");
+        let result = format_output_filename("%Y/%m/{mac}-%Y-%m-%d.json", &dt, "AA:BB:CC:DD:EE:FF", "");
         assert_eq!(result, "2024/05/AA-BB-CC-DD-EE-FF-2024-05-01.json");
+    }
+
+    #[test]
+    fn format_output_filename_station_used_when_set() {
+        let dt = chrono::Local.with_ymd_and_hms(2024, 5, 1, 0, 0, 0).unwrap();
+        let result = format_output_filename("{station}-%Y-%m-%d.json", &dt, "AA:BB:CC:DD:EE:FF", "roof");
+        assert_eq!(result, "roof-2024-05-01.json");
+    }
+
+    #[test]
+    fn format_output_filename_station_falls_back_to_mac() {
+        let dt = chrono::Local.with_ymd_and_hms(2024, 5, 1, 0, 0, 0).unwrap();
+        let result = format_output_filename("{station}-%Y-%m-%d.json", &dt, "AA:BB:CC:DD:EE:FF", "");
+        assert_eq!(result, "AA-BB-CC-DD-EE-FF-2024-05-01.json");
+    }
+
+    #[test]
+    fn format_output_filename_both_tokens() {
+        let dt = chrono::Local.with_ymd_and_hms(2024, 5, 1, 0, 0, 0).unwrap();
+        let result = format_output_filename("{station}/{mac}-%Y-%m-%d.json", &dt, "AA:BB:CC:DD:EE:FF", "roof");
+        assert_eq!(result, "roof/AA-BB-CC-DD-EE-FF-2024-05-01.json");
     }
 
     #[test]

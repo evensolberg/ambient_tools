@@ -137,6 +137,19 @@ pub fn build_cli() -> Command {
                     .value_parser(clap::value_parser!(u64).range(5..=3600))
             )
             .arg(
+                Arg::new("station-name")
+                    .long("station-name")
+                    .help("Human-readable name for this station.")
+                    .long_help(
+                        "Human-readable name for this station, used as {station} in \
+                         the filename pattern. Falls back to the normalized MAC address \
+                         when not set."
+                    )
+                    .num_args(1)
+                    .action(clap::ArgAction::Set)
+                    .env("AMBIENT_WEATHER_STATION_NAME")
+            )
+            .arg(
                 Arg::new("filename-pattern")
                     .short('p')
                     .long("filename-pattern")

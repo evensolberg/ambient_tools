@@ -5,7 +5,7 @@ at-1qd,json2csv crate is a non-functional stub,closed,bug,1,maintainability|json
 at-42k,Append data to CSV file (json2csv),open,feature,2,json2csv,2026-03-08,2026-03-08,,
 at-6vt,API keys exposed in debug logging,closed,bug,0,security|logging,2026-03-08,2026-03-08,Added custom Debug impls for Config and Query that redact api_key and app_key; also fixed to_file() which was logging raw TOML content with credentials,
 at-758,Create a menu-bar application to show latest metrics,open,idea,4,ambient-menu,2026-03-08,2026-03-08,,
-at-7pd,Custom station name,open,task,2,,2026-03-08,2026-03-08,,
+at-7pd,Custom station name,closed,task,2,,2026-03-08,2026-03-08,Added station_name field to Config/TOML template and --station-name CLI flag. {station} token in filename patterns resolves to station_name or falls back to normalized MAC.,
 at-7yu,Look into switching to blocking download requests,closed,task,1,ambient-download|network,2026-03-08,2026-03-08,reqwest::blocking::Client already used in download_weather() with timeout and keepalive,
 at-8ad,Make the loading of config files more robust,closed,bug,1,ambient-download|config,2026-03-08,2026-03-08,from_file() wraps I/O and parse errors with filename and 'run newconfig' hint; validate() gives per-field errors before API calls,
 at-8r6,Add a tool or parameter to transform dates and times between UTC and local,closed,feature,1,ambient-download|timezone,2026-03-08,2026-03-08,timezone subcommand now accepts optional DATETIME arg and prints both UTC->local and local->UTC conversions,
