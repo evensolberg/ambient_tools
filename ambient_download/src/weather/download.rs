@@ -101,7 +101,7 @@ pub fn get_weather_data(
     Ok(())
 }
 
-/// Write the information to a JSON file
+/// Write the information to a JSON file, pretty-printed for readability.
 ///
 /// # Arguments
 ///
@@ -114,14 +114,16 @@ pub fn get_weather_data(
 ///
 /// # Errors
 ///
-/// If the file cannot be created.
-/// If the file cannot be written.
-pub fn write_weather_info_to_file(
-    filename: &str,
-    weather_info: &str,
-) -> Result<usize> {
+/// If the file cannot be created or written.
+/// If the JSON cannot be parsed or serialized.
+pub fn write_weather_info_to_file(filename: &str, weather_info: &str) -> Result<usize> {
+    let value: serde_json::Value = serde_json::from_str(weather_info)
+        .with_context(|| format!("Failed to parse JSON for {filename}"))?;
+    let pretty = serde_json::to_string_pretty(&value)
+        .with_context(|| format!("Failed to serialize JSON for {filename}"))?;
+
     let mut file = std::fs::File::create(filename)?;
-    let res = file.write(weather_info.as_bytes())?;
+    let res = file.write(pretty.as_bytes())?;
 
     Ok(res)
 }
@@ -274,7 +276,9 @@ mod tests {
 
     #[test]
     fn filename_from_datetime_formats_correctly() {
-        let dt = chrono::Local.with_ymd_and_hms(2024, 5, 1, 12, 0, 0).unwrap();
+        let dt = chrono::Local
+            .with_ymd_and_hms(2024, 5, 1, 12, 0, 0)
+            .unwrap();
         assert_eq!(filename_from_datetime(&dt, "json"), "2024-05-01.json");
     }
 

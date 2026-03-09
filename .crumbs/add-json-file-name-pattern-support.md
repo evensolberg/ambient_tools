@@ -14,4 +14,4 @@ dependencies: []
 
 # Add JSON file name pattern support
 
-Allow users to specify a pattern for output file naming, e.g. "YYYY-MM-DD.json" → "2024-05-20.json". Also support directory patterns like "YYYY/MM/YYYY-MM-DD.json". GitHub project status: Backlog
+Allow users to specify a pattern for output file naming, e.g. "YYYY-MM-DD.json" → "2024-05-20.json". Also support directory patterns like "YYYY/MM/YYYY-MM-DD.json".

@@ -104,8 +104,13 @@ fn download_device_info_to_file(
     }
 
     let full_path = format!("{output_folder}/{dev_info_file_name}");
+    let value: serde_json::Value = serde_json::from_str(&device_info)
+        .with_context(|| format!("Failed to parse device info JSON for {full_path}"))?;
+    let pretty = serde_json::to_string_pretty(&value)
+        .with_context(|| format!("Failed to serialize device info JSON for {full_path}"))?;
+
     let mut file = std::fs::File::create(&full_path)?;
-    let bytes_written = file.write(device_info.as_bytes())?;
+    let bytes_written = file.write(pretty.as_bytes())?;
 
     if detail_level > DetailLevel::Quiet {
         log::info!("Wrote {bytes_written} bytes to {full_path}.");

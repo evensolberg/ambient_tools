@@ -1,6 +1,6 @@
 [package]
 name = "ambient_download"
-version = "0.8.4"
+version = "0.8.5"
 description = "Download Ambient Weather data in JSON format."
 authors.workspace = true
 edition.workspace = true
@@ -24,5 +24,6 @@ iana-time-zone.workspace = true
 log.workspace = true
 reqwest.workspace = true
 serde.workspace = true
+serde_json.workspace = true
 toml.workspace = true
 shared = { path = "../shared" }
