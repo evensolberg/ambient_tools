@@ -1,14 +1,14 @@
 ---
 id: at-42k
 title: Append data to CSV file (json2csv)
-status: open
+status: closed
 type: feature
 priority: 2
 tags:
 - json2csv
 created: 2026-03-08
 updated: 2026-03-08
-closed_reason: ''
+closed_reason: Subsumed by at-c7p — CSV append/export belongs in the data processing pipeline rather than as a standalone feature
 dependencies: []
 ---
 

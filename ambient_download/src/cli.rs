@@ -72,6 +72,18 @@ pub fn build_cli() -> Command {
                 .default_missing_value("device-info.json")
                 .action(clap::ArgAction::Set)
             )
+            .arg(
+                Arg::new("save-mac")
+                .long("save-mac")
+                .help("Write the discovered MAC address back to the config file.")
+                .long_help(
+                    "After downloading device info, write the discovered MAC address \
+                     back into the config file specified by --config-file. \
+                     If multiple devices are found, the first is saved and a warning is logged. \
+                     Has no effect if --config-file was not provided."
+                )
+                .action(clap::ArgAction::SetTrue)
+            )
         )
         .subcommand(Command::new("weather")
             .about("Download weather information.")

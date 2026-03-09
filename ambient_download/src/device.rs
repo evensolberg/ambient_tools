@@ -7,6 +7,60 @@ use shared::config;
 
 use crate::{creds, creds::Query, detail::DetailLevel};
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn extract_mac_addresses_single_device() {
+        let json = serde_json::json!([{"macAddress": "AA:BB:CC:DD:EE:FF", "info": {}}]);
+        assert_eq!(extract_mac_addresses(&json), vec!["AA:BB:CC:DD:EE:FF"]);
+    }
+
+    #[test]
+    fn extract_mac_addresses_multiple_devices() {
+        let json = serde_json::json!([
+            {"macAddress": "AA:BB:CC:DD:EE:FF"},
+            {"macAddress": "11:22:33:44:55:66"},
+        ]);
+        assert_eq!(
+            extract_mac_addresses(&json),
+            vec!["AA:BB:CC:DD:EE:FF", "11:22:33:44:55:66"]
+        );
+    }
+
+    #[test]
+    fn extract_mac_addresses_empty_array() {
+        let json = serde_json::json!([]);
+        assert!(extract_mac_addresses(&json).is_empty());
+    }
+
+    #[test]
+    fn extract_mac_addresses_missing_field() {
+        let json = serde_json::json!([{"info": {}}]);
+        assert!(extract_mac_addresses(&json).is_empty());
+    }
+
+    #[test]
+    fn extract_mac_addresses_not_an_array() {
+        let json = serde_json::json!({"macAddress": "AA:BB:CC:DD:EE:FF"});
+        assert!(extract_mac_addresses(&json).is_empty());
+    }
+}
+
+/// Extract MAC addresses from a parsed Ambient Weather device list response.
+fn extract_mac_addresses(value: &serde_json::Value) -> Vec<String> {
+    value
+        .as_array()
+        .map(|devices| {
+            devices
+                .iter()
+                .filter_map(|d| d["macAddress"].as_str().map(String::from))
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
 /// Get the device information and write it to a file.
 ///
 /// # Arguments
@@ -47,27 +101,61 @@ pub fn get_device_info(
         .get_one::<String>("device-info-filename")
         .unwrap_or(&info_file_default);
 
-    download_device_info_to_file(
+    let (_bytes, macs) = download_device_info_to_file(
         &config.output_folder,
         dev_info_file_name,
         detail_level,
         creds,
     )?;
+
+    let save_mac = device_args.get_flag("save-mac");
+    if save_mac {
+        match macs.as_slice() {
+            [] => {
+                log::warn!("--save-mac requested but no MAC address found in response.");
+            }
+            [mac] => {
+                let Some(config_file) = cli_args.get_one::<String>("config-file") else {
+                    log::warn!(
+                        "--save-mac requires a config file (--config-file). \
+                         MAC address found: {mac}"
+                    );
+                    return Ok(());
+                };
+                let mut updated = config.clone();
+                updated.mac_address = mac.clone();
+                updated.to_file(config_file)?;
+                log::info!("Saved MAC address {mac} to {config_file}.");
+            }
+            multiple => {
+                let first = &multiple[0];
+                log::warn!(
+                    "Multiple devices found ({}). Saving the first MAC address: {first}",
+                    multiple.len()
+                );
+                let Some(config_file) = cli_args.get_one::<String>("config-file") else {
+                    log::warn!(
+                        "--save-mac requires a config file (--config-file). \
+                         MAC address found: {first}"
+                    );
+                    return Ok(());
+                };
+                let mut updated = config.clone();
+                updated.mac_address = first.clone();
+                updated.to_file(config_file)?;
+                log::info!("Saved MAC address {first} to {config_file}.");
+            }
+        }
+    }
+
     Ok(())
 }
 
 /// Download the device information and write it to a file.
 ///
-/// # Arguments
-///
-/// * `output_folder` - The folder to write the output file to.
-/// * `dev_info_file_name` - The name of the file to write the device information to.
-/// * `detail_level` - The level of detail to log.
-/// * `creds` - The credentials to use.
-///
 /// # Returns
 ///
-/// A `Result` with the number of bytes written to the file.
+/// A `Result` with `(bytes_written, mac_addresses)`.
 ///
 /// # Errors
 ///
@@ -77,7 +165,7 @@ fn download_device_info_to_file(
     dev_info_file_name: &str,
     detail_level: DetailLevel,
     creds: &Query,
-) -> Result<usize> {
+) -> Result<(usize, Vec<String>)> {
     crate::check_or_create_output_folder(output_folder)?;
 
     let url = format!(
@@ -106,6 +194,9 @@ fn download_device_info_to_file(
     let full_path = format!("{output_folder}/{dev_info_file_name}");
     let value: serde_json::Value = serde_json::from_str(&device_info)
         .with_context(|| format!("Failed to parse device info JSON for {full_path}"))?;
+
+    let macs = extract_mac_addresses(&value);
+
     let pretty = serde_json::to_string_pretty(&value)
         .with_context(|| format!("Failed to serialize device info JSON for {full_path}"))?;
 
@@ -118,5 +209,5 @@ fn download_device_info_to_file(
         log::debug!("Wrote {bytes_written} bytes to {full_path}.");
     }
 
-    Ok(bytes_written)
+    Ok((bytes_written, macs))
 }

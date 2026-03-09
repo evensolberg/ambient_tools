@@ -7,7 +7,7 @@ priority: 2
 tags: []
 created: 2026-03-08
 updated: 2026-03-08
-closed_reason: Added station_name field to Config/TOML template and --station-name CLI flag. {station} token in filename patterns resolves to station_name or falls back to normalized MAC.
+closed_reason: Implemented 2026-03-08
 dependencies: []
 ---
 

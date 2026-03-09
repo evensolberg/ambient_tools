@@ -1,7 +1,7 @@
 ---
 id: at-qf0
 title: Add option to write MAC address to config after device download
-status: open
+status: closed
 type: feature
 priority: 2
 tags:
@@ -9,7 +9,7 @@ tags:
 - config
 created: 2026-03-08
 updated: 2026-03-08
-closed_reason: ''
+closed_reason: Implemented --save-mac flag on device subcommand. Parses MAC from JSON response and writes back to config file. Warns on multiple devices or missing --config-file.
 dependencies: []
 ---
 
