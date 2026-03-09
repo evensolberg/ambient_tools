@@ -2,7 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
-## [unreleased]
+## [0.5.1] - 2026-03-09
+
+### Features
+
+- Add `reorganize` subcommand to ambient_process (v0.3.0)
+- Extract `format_output_filename` into shared::pipeline::filename
+
+## [0.5.0] - 2026-03-09
 
 ### Bug Fixes
 
@@ -22,6 +29,7 @@ All notable changes to this project will be documented in this file.
 - Append extra MACs as comments when multiple devices found
 - Add env vars for limit, days, sleep-time; update README
 - Add ambient_process binary and shared::pipeline module
+- Add TOON export format to ambient_process
 
 ### Miscellaneous Tasks
 
