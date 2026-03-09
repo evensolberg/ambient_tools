@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [unreleased]
+
+### Bug Fixes
+
+- Security hardening and robustness fixes (v0.8.1/v0.1.2)
+
+### Miscellaneous Tasks
+
+- Update outdated workspace dependencies
+- Track .crumbs/ task store in version control
+
+### Refactor
+
+- Refactor dependencies update
+
 ## [0.4.1] - 2025-11-08
 
 ### Documentation

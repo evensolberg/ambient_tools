@@ -21,3 +21,6 @@ weather_data/
 ambient_download.toml
 /mutants.out
 /mutants.out.old
+
+# Snyk Security Extension - AI Rules (auto-generated)
+.github/instructions/snyk_rules.instructions.md
