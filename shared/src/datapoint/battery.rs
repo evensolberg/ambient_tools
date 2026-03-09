@@ -61,7 +61,7 @@ impl<'de> Deserialize<'de> for BatteryStatus {
         use serde::de::Error;
         let v = serde_json::Value::deserialize(deserializer)?;
         let n: u8 = match &v {
-            serde_json::Value::Number(n) => n.as_u64().unwrap_or(100) as u8,
+            serde_json::Value::Number(n) => u8::try_from(n.as_u64().unwrap_or(100)).unwrap_or(100),
             serde_json::Value::String(s) => s.parse().unwrap_or(100),
             _ => return Err(D::Error::custom(format!("unexpected battery value: {v}"))),
         };

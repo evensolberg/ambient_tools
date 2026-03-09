@@ -14,16 +14,19 @@ pub struct DateFilter {
 }
 
 impl DateFilter {
-    pub fn new(from: Option<NaiveDate>, to: Option<NaiveDate>) -> Self {
+    #[must_use]
+    pub const fn new(from: Option<NaiveDate>, to: Option<NaiveDate>) -> Self {
         Self { from, to }
     }
 
     /// Return `true` if this filter would accept all records (no bounds set).
-    pub fn is_passthrough(&self) -> bool {
+    #[must_use]
+    pub const fn is_passthrough(&self) -> bool {
         self.from.is_none() && self.to.is_none()
     }
 
     /// Apply the filter, retaining only records within the date range.
+    #[must_use]
     pub fn apply(&self, records: Vec<WeatherDataPoint>) -> Vec<WeatherDataPoint> {
         if self.is_passthrough() {
             return records;
@@ -55,15 +58,17 @@ impl DateFilter {
 }
 
 /// Convert milliseconds-since-epoch to a `NaiveDate` (UTC).
+#[must_use]
 pub fn ms_to_naive_date(ms: u64) -> NaiveDate {
-    let secs = (ms / 1000) as i64;
+    let secs = (ms / 1000).cast_signed();
     let dt: DateTime<Utc> = Utc.timestamp_opt(secs, 0).single().unwrap_or_default();
     dt.date_naive()
 }
 
 /// Convert milliseconds-since-epoch to a UTC `DateTime<Utc>`.
+#[must_use]
 pub fn ms_to_datetime(ms: u64) -> DateTime<Utc> {
-    let secs = (ms / 1000) as i64;
+    let secs = (ms / 1000).cast_signed();
     Utc.timestamp_opt(secs, 0).single().unwrap_or_default()
 }
 

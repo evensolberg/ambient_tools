@@ -100,7 +100,7 @@ impl std::fmt::Display for WindSpeed {
 }
 
 impl Serialize for WindSpeed {
-    /// Serialize the WindSpeed to a float (mph).
+    /// Serialize the `WindSpeed` to a float (mph).
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::ser::Serializer,
@@ -110,12 +110,12 @@ impl Serialize for WindSpeed {
 }
 
 impl<'de> Deserialize<'de> for WindSpeed {
-    /// Deserialize the WindSpeed from a float (assumes mph, matching the Ambient Weather API).
-    fn deserialize<D>(deserializer: D) -> Result<WindSpeed, D::Error>
+    /// Deserialize the `WindSpeed` from a float (assumes mph, matching the Ambient Weather API).
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::de::Deserializer<'de>,
     {
         let value = f32::deserialize(deserializer)?;
-        Ok(WindSpeed::MPH(value))
+        Ok(Self::MPH(value))
     }
 }

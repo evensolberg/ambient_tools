@@ -73,6 +73,10 @@ pub const ALL_FIELDS: &[&str] = &[
 /// * `records` — records to export
 /// * `fields` — column list; `None` uses [`DEFAULT_FIELDS`]; `Some(&["all"])` exports [`ALL_FIELDS`]
 /// * `units` — `SI` converts temperatures to °C, pressures to hPa, speeds to kph, lengths to mm
+///
+/// # Errors
+///
+/// Returns an error if writing to `writer` fails.
 pub fn write_csv<W: Write>(
     writer: W,
     records: &[WeatherDataPoint],
@@ -101,6 +105,7 @@ pub fn write_csv<W: Write>(
 }
 
 /// Render a single cell value for a given column name and record.
+#[allow(clippy::too_many_lines)]
 fn cell(r: &WeatherDataPoint, col: &str, units: SystemOfUnits) -> String {
     match col {
         "date" => r

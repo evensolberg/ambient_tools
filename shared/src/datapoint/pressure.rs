@@ -176,7 +176,7 @@ impl Default for AirPressure {
 }
 
 impl Serialize for AirPressure {
-    /// Serialize the AirPressure to a float (inHg).
+    /// Serialize the `AirPressure` to a float (inHg).
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::ser::Serializer,
@@ -186,13 +186,13 @@ impl Serialize for AirPressure {
 }
 
 impl<'de> Deserialize<'de> for AirPressure {
-    /// Deserialize the AirPressure from a float (assumes inHg, matching the Ambient Weather API).
-    fn deserialize<D>(deserializer: D) -> Result<AirPressure, D::Error>
+    /// Deserialize the `AirPressure` from a float (assumes inHg, matching the Ambient Weather API).
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::de::Deserializer<'de>,
     {
         let value = f32::deserialize(deserializer)?;
-        Ok(AirPressure::inHg(value))
+        Ok(Self::inHg(value))
     }
 }
 

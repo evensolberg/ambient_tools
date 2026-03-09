@@ -82,18 +82,15 @@ fn cmd_convert(args: &clap::ArgMatches) -> Result<()> {
     let fields: Option<&[&str]> = fields_override.as_deref();
 
     // Write CSV
-    match args.get_one::<String>("output") {
-        Some(path) => {
-            let file = std::fs::File::create(path)
-                .with_context(|| format!("Failed to create output file: {path}"))?;
-            write_csv(file, &records, fields, units)?;
-            log::info!("Wrote CSV to {path}.");
-        }
-        None => {
-            let stdout = std::io::stdout();
-            let handle = stdout.lock();
-            write_csv(handle, &records, fields, units)?;
-        }
+    if let Some(path) = args.get_one::<String>("output") {
+        let file = std::fs::File::create(path)
+            .with_context(|| format!("Failed to create output file: {path}"))?;
+        write_csv(file, &records, fields, units)?;
+        log::info!("Wrote CSV to {path}.");
+    } else {
+        let stdout = std::io::stdout();
+        let handle = stdout.lock();
+        write_csv(handle, &records, fields, units)?;
     }
 
     Ok(())

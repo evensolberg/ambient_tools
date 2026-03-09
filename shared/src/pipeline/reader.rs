@@ -13,7 +13,10 @@ use crate::datapoint::data_point::WeatherDataPoint;
 ///
 /// Expects the file to contain a JSON array of weather records.
 /// Records that fail to deserialize are skipped with a warning.
-/// Returns an error if the file cannot be opened or if the outer array is malformed.
+///
+/// # Errors
+///
+/// Returns an error if the file cannot be opened or if the outer JSON array is malformed.
 pub fn read_file(path: &Path) -> Result<Vec<WeatherDataPoint>> {
     let file = std::fs::File::open(path)
         .with_context(|| format!("Failed to open {}", path.display()))?;
@@ -38,6 +41,10 @@ pub fn read_file(path: &Path) -> Result<Vec<WeatherDataPoint>> {
 /// Files that fail to parse are skipped with a warning rather than
 /// aborting the entire run. Records from all files are merged into a
 /// single `Vec`, sorted by `dateutc` (ascending).
+///
+/// # Errors
+///
+/// Returns an error if the glob pattern is invalid or no files matched.
 pub fn read_glob(pattern: &str) -> Result<Vec<WeatherDataPoint>> {
     let paths = expand_glob(pattern)?;
     if paths.is_empty() {

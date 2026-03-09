@@ -66,11 +66,11 @@ impl Serialize for Length {
 
 impl<'de> Deserialize<'de> for Length {
     /// Deserialize the length from a float (assumes inches, matching the Ambient Weather API).
-    fn deserialize<D>(deserializer: D) -> Result<Length, D::Error>
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::de::Deserializer<'de>,
     {
         let value = f32::deserialize(deserializer)?;
-        Ok(Length::Inches(value))
+        Ok(Self::Inches(value))
     }
 }
