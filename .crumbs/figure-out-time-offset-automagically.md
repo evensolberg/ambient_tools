@@ -1,7 +1,7 @@
 ---
 id: at-g36
 title: Figure out time offset automagically
-status: open
+status: closed
 type: feature
 priority: 2
 tags:
@@ -9,7 +9,7 @@ tags:
 - timezone
 created: 2026-03-08
 updated: 2026-03-08
-closed_reason: ''
+closed_reason: Config.tz_name defaults to iana_time_zone::get_timezone() in Config::default(), so local timezone is auto-detected when not explicitly supplied.
 dependencies: []
 ---
 

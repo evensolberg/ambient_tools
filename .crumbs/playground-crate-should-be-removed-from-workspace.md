@@ -1,7 +1,7 @@
 ---
 id: at-j3l
 title: Playground crate should be removed from workspace
-status: open
+status: closed
 type: task
 priority: 3
 tags:
@@ -9,7 +9,7 @@ tags:
 - workspace
 created: 2026-03-08
 updated: 2026-03-08
-closed_reason: ''
+closed_reason: playground removed from workspace members in Cargo.toml during P0 fix session.
 dependencies: []
 ---
 

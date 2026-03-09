@@ -1,7 +1,7 @@
 ---
 id: at-ae8
 title: Add input validation for keys and MAC address
-status: open
+status: closed
 type: feature
 priority: 2
 tags:
@@ -9,7 +9,7 @@ tags:
 - validation
 created: 2026-03-08
 updated: 2026-03-08
-closed_reason: ''
+closed_reason: 'Covered by Query::validate(): is_valid_api_key() checks 64-char hex for api_key and app_key; is_valid_mac() validates MAC format. Called before all API requests.'
 dependencies: []
 ---
 
