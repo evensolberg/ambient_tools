@@ -91,7 +91,7 @@ impl WindDirection {
 
     /// Create a new `Direction` from a number.
     #[must_use]
-    pub fn from_number(num: u8) -> Self {
+    pub const fn from_number(num: u8) -> Self {
         match num {
             0 => Self::N(0.0),
             1 => Self::NNE(22.5),
@@ -115,7 +115,7 @@ impl WindDirection {
 
     /// Get the number representation of the direction.
     #[must_use]
-    pub fn to_number(&self) -> u8 {
+    pub const fn to_number(&self) -> u8 {
         match self {
             Self::N(_) => 0,
             Self::NNE(_) => 1,
@@ -139,7 +139,7 @@ impl WindDirection {
 
     /// Get the compass direction of the wind.
     #[must_use]
-    pub fn to_compass(&self) -> &str {
+    pub const fn to_compass(&self) -> &str {
         match self {
             Self::N(_) => "N",
             Self::NNE(_) => "NNE",
@@ -163,7 +163,7 @@ impl WindDirection {
 
     /// Get the long form compass direction of the wind.
     #[must_use]
-    pub fn to_compass_long(&self) -> &str {
+    pub const fn to_compass_long(&self) -> &str {
         match self {
             Self::N(_) => "North",
             Self::NNE(_) => "North-Northeast",
@@ -187,25 +187,25 @@ impl WindDirection {
 
     /// Get the compass direction of the wind in degrees.
     #[must_use]
-    pub fn to_degrees(&self) -> f32 {
+    pub const fn to_degrees(&self) -> f32 {
         match self {
-            Self::N(d) => *d,
-            Self::NNE(d) => *d,
-            Self::NE(d) => *d,
-            Self::ENE(d) => *d,
-            Self::E(d) => *d,
-            Self::ESE(d) => *d,
-            Self::SE(d) => *d,
-            Self::SSE(d) => *d,
-            Self::S(d) => *d,
-            Self::SSW(d) => *d,
-            Self::SW(d) => *d,
-            Self::WSW(d) => *d,
-            Self::W(d) => *d,
-            Self::WNW(d) => *d,
-            Self::NW(d) => *d,
-            Self::NNW(d) => *d,
-            Self::Unknown(d) => *d,
+            Self::N(d)
+            | Self::NNE(d)
+            | Self::NE(d)
+            | Self::ENE(d)
+            | Self::E(d)
+            | Self::ESE(d)
+            | Self::SE(d)
+            | Self::SSE(d)
+            | Self::S(d)
+            | Self::SSW(d)
+            | Self::SW(d)
+            | Self::WSW(d)
+            | Self::W(d)
+            | Self::WNW(d)
+            | Self::NW(d)
+            | Self::NNW(d)
+            | Self::Unknown(d) => *d,
         }
     }
 

@@ -192,13 +192,14 @@ fn print_timezone(cli_args: &clap::ArgMatches, detail_level: DetailLevel) {
             println!("Local equivalent:      {}", as_local.format(fmt));
 
             // Also show the reverse.
-            let as_local_naive = chrono::Local
-                .from_local_datetime(&naive)
-                .earliest();
+            let as_local_naive = chrono::Local.from_local_datetime(&naive).earliest();
             if let Some(local_dt) = as_local_naive {
                 println!();
                 println!("Input (local):         {dt_str}");
-                println!("UTC equivalent:        {}", local_dt.with_timezone(&Utc).format(fmt));
+                println!(
+                    "UTC equivalent:        {}",
+                    local_dt.with_timezone(&Utc).format(fmt)
+                );
             }
         } else {
             log::error!("Could not parse '{dt_str}'. Expected format: YYYY-MM-DD HH:MM:SS");

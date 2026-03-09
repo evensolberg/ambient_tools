@@ -15,13 +15,13 @@ pub enum Length {
 impl Length {
     /// Create a new `Length` from an inch value.
     #[must_use]
-    pub fn from_inches(inches: f32) -> Self {
+    pub const fn from_inches(inches: f32) -> Self {
         Self::Inches(inches)
     }
 
     /// Create a new `Length` from a millimeter value.
     #[must_use]
-    pub fn from_millimeters(millimeters: f32) -> Self {
+    pub const fn from_millimeters(millimeters: f32) -> Self {
         Self::Millimeters(millimeters)
     }
 

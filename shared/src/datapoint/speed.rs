@@ -22,25 +22,25 @@ pub enum WindSpeed {
 impl WindSpeed {
     /// Create a new `WindSpeed` from a miles per hour value.
     #[must_use]
-    pub fn from_mph(mph: f32) -> Self {
+    pub const fn from_mph(mph: f32) -> Self {
         Self::MPH(mph)
     }
 
     /// Create a new `WindSpeed` from a kilometers per hour value.
     #[must_use]
-    pub fn from_kph(kph: f32) -> Self {
+    pub const fn from_kph(kph: f32) -> Self {
         Self::KPH(kph)
     }
 
     /// Create a new `WindSpeed` from a meters per second value.
     #[must_use]
-    pub fn from_mps(mps: f32) -> Self {
+    pub const fn from_mps(mps: f32) -> Self {
         Self::MPS(mps)
     }
 
     /// Create a new `WindSpeed` from a knots value.
     #[must_use]
-    pub fn from_knots(knots: f32) -> Self {
+    pub const fn from_knots(knots: f32) -> Self {
         Self::Knots(knots)
     }
 

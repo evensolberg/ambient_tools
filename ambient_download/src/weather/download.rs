@@ -151,7 +151,7 @@ pub fn format_output_filename(
 ) -> String {
     let normalized = mac
         .chars()
-        .filter(|c| c.is_ascii_hexdigit())
+        .filter(char::is_ascii_hexdigit)
         .collect::<String>()
         .to_uppercase();
 
@@ -169,6 +169,7 @@ pub fn format_output_filename(
         station_name
     };
 
+    #[allow(clippy::literal_string_with_formatting_args)]
     let with_tokens = pattern
         .replace("{mac}", &mac_dashed)
         .replace("{station}", station);
@@ -233,7 +234,12 @@ fn download_weather(
 
         let weather_info = resp.text().context("Failed to read weather response")?;
 
-        let rel_path = format_output_filename(&config.filename_pattern, &date, mac_address, &config.station_name);
+        let rel_path = format_output_filename(
+            &config.filename_pattern,
+            &date,
+            mac_address,
+            &config.station_name,
+        );
         let full_path = format!("{output_folder}/{rel_path}");
 
         // Create any subdirectories implied by the pattern (e.g. %Y/%m/).

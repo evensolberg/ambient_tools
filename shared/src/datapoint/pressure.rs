@@ -29,37 +29,37 @@ pub enum AirPressure {
 impl AirPressure {
     /// Create a new `AirPressure` in inches of mercury.
     #[must_use]
-    pub fn from_in_hg(p: f32) -> Self {
+    pub const fn from_in_hg(p: f32) -> Self {
         Self::inHg(p)
     }
 
     /// Create a new `AirPressure` in millibars.
     #[must_use]
-    pub fn from_mb(p: f32) -> Self {
+    pub const fn from_mb(p: f32) -> Self {
         Self::mb(p)
     }
 
     /// Create a new `AirPressure` in kilopascals.
     #[must_use]
-    pub fn from_hpa(p: f32) -> Self {
+    pub const fn from_hpa(p: f32) -> Self {
         Self::hPa(p)
     }
 
     /// Create a new `AirPressure` in pounds per square inch.
     #[must_use]
-    pub fn from_psi(p: f32) -> Self {
+    pub const fn from_psi(p: f32) -> Self {
         Self::PSI(p)
     }
 
     /// Create a new `AirPressure` in atmospheres.
     #[must_use]
-    pub fn from_atmospheres(p: f32) -> Self {
+    pub const fn from_atmospheres(p: f32) -> Self {
         Self::Atmospheres(p)
     }
 
     /// Create a new `AirPressure` in millimeters of mercury.
     #[must_use]
-    pub fn from_mmhg(p: f32) -> Self {
+    pub const fn from_mmhg(p: f32) -> Self {
         Self::mmHg(p)
     }
 
@@ -68,8 +68,7 @@ impl AirPressure {
     pub fn to_inhg(&self) -> f32 {
         match self {
             Self::inHg(p) => *p,
-            Self::mb(p) => p / 33.8639,
-            Self::hPa(p) => p / 33.8639,
+            Self::mb(p) | Self::hPa(p) => p / 33.8639,
             Self::PSI(p) => p * 0.491_154,
             Self::Atmospheres(p) => p * 29.9213,
             Self::mmHg(p) => p / 25.4,
@@ -81,8 +80,7 @@ impl AirPressure {
     pub fn to_mb(&self) -> f32 {
         match self {
             Self::inHg(p) => p * 33.8639,
-            Self::mb(p) => *p,
-            Self::hPa(p) => *p,
+            Self::mb(p) | Self::hPa(p) => *p,
             Self::PSI(p) => p * 68.9476,
             Self::Atmospheres(p) => p * 1013.25,
             Self::mmHg(p) => p * 1.33322,
@@ -94,8 +92,7 @@ impl AirPressure {
     pub fn to_hpa(&self) -> f32 {
         match self {
             Self::inHg(p) => p * 33.8639,
-            Self::mb(p) => *p,
-            Self::hPa(p) => *p,
+            Self::mb(p) | Self::hPa(p) => *p,
             Self::PSI(p) => p * 6.89476,
             Self::Atmospheres(p) => p * 101.325,
             Self::mmHg(p) => p * 1.33322,
@@ -133,8 +130,7 @@ impl AirPressure {
     pub fn to_mmhg(&self) -> f32 {
         match self {
             Self::inHg(p) => p * 25.4,
-            Self::mb(p) => p / 1.33322,
-            Self::hPa(p) => p / 1.33322,
+            Self::mb(p) | Self::hPa(p) => p / 1.33322,
             Self::PSI(p) => p * 51.7149,
             Self::Atmospheres(p) => p * 760.0,
             Self::mmHg(p) => *p,
@@ -156,7 +152,7 @@ impl AirPressure {
 
     /// Convert the `AirPressure` from the specified unit.
     #[must_use]
-    pub fn from(unit: Self, value: f32) -> Self {
+    pub const fn from(unit: Self, value: f32) -> Self {
         match unit {
             Self::inHg(_) => Self::inHg(value),
             Self::mb(_) => Self::mb(value),

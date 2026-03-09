@@ -74,7 +74,7 @@ Commands:
 ### Global options
 
 | Flag | Short | Description |
- ---|---|---|
+| --- | --- | --- |
 | `--detail-level` | `-d` | Verbosity: 0 silent, 1 normal, 2 detailed, 3 debug, 4 trace |
 | `--api-key` | `-k` | Ambient Weather API key |
 | `--app-key` | `-l` | Ambient Weather Application key |
@@ -160,7 +160,7 @@ ambient_download \
 The Ambient Weather API enforces rate limits. When `--sleep-time` is left at its default, the tool automatically scales the delay between requests based on the number of days being downloaded:
 
 | Days | Sleep between requests |
-|---|---|
+| --- | --- |
 | 1–5 | 10 seconds |
 | 6–15 | 30 seconds |
 | 16–30 | 60 seconds |
@@ -245,7 +245,7 @@ All fields are optional within the file; omitted fields fall back to their defau
 The `--filename-pattern` option (and its config-file equivalent) accepts any [strftime](https://docs.rs/chrono/latest/chrono/format/strftime/index.html) format string, plus two custom tokens:
 
 | Token | Replaced with |
-|---|---|
+| --- | --- |
 | `{mac}` | The device MAC address, with colons replaced by hyphens |
 | `{station}` | The value of `--station-name`, or the normalized MAC if not set |
 
@@ -254,7 +254,7 @@ Intermediate directories implied by the pattern are created automatically.
 Examples:
 
 | Pattern | Resulting filename |
-|---|---|
+| --- | --- |
 | `%Y-%m-%d.json` (default) | `2024-05-01.json` |
 | `%Y/%Y-%m-%d.json` | `2024/2024-05-01.json` |
 | `{station}/%Y-%m-%d.json` | `home/2024-05-01.json` |
@@ -269,7 +269,7 @@ All output files are written as pretty-printed (indented) JSON.
 All credentials and common settings can be supplied as environment variables, making it straightforward to configure the tool in containers or CI environments without a config file.
 
 | Variable | Description |
-|---|---|
+| --- | --- |
 | `AMBIENT_WEATHER_API_KEY` | Ambient Weather API key |
 | `AMBIENT_WEATHER_APP_KEY` | Ambient Weather Application key |
 | `AMBIENT_WEATHER_MAC_ADDRESS` | Device MAC address |

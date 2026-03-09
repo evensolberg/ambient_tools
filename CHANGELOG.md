@@ -7,15 +7,40 @@ All notable changes to this project will be documented in this file.
 ### Bug Fixes
 
 - Security hardening and robustness fixes (v0.8.1/v0.1.2)
+- P1 bugs — validation, timeouts, config errors, tests (v0.8.2)
+- Address clippy lint warnings in modified code
+- Redact credentials in Config serialization (shared v0.1.4)
+
+### Features
+
+- Write pretty JSON output for weather and device data
+- Configurable output filename pattern with {mac} support
+- Add station_name config field and {station} filename token
+- --save-mac flag writes discovered MAC to config file
+- Append extra MACs as comments when multiple devices found
+- Add env vars for limit, days, sleep-time; update README
 
 ### Miscellaneous Tasks
 
 - Update outdated workspace dependencies
 - Track .crumbs/ task store in version control
+- Update .gitignore, CHANGELOG, and justfile
+- Add crumb for datapoint processing pipeline feature
+- Close resolved P1 crumbs
+- Close already-implemented crumbs
+- Bump ambient_download to v0.8.3 (patch)
+- Minor version bump for new filename pattern features
+- Bump ambient_download to 0.9.3
 
 ### Refactor
 
 - Refactor dependencies update
+- Replace Box<dyn Error> with typed errors (v0.8.4)
+- Remove redundant args from download_weather
+
+### Testing
+
+- Add tests for pretty JSON write function
 
 ## [0.4.1] - 2025-11-08
 

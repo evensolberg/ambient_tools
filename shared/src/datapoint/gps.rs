@@ -20,6 +20,7 @@ impl Display for GpsUnits {
 }
 
 /// A GPS coordinate. This is a simple struct that holds a latitude and longitude in decimal degrees.
+#[allow(dead_code)]
 #[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize)]
 struct GpsCoordinate {
     format: GpsUnits,
@@ -27,9 +28,10 @@ struct GpsCoordinate {
     longitude: f32,
 }
 
+#[allow(dead_code)]
 impl GpsCoordinate {
     /// Create a new `GPS_Coordinate` from a latitude and longitude.
-    pub fn new(latitude: f32, longitude: f32) -> Self {
+    pub const fn new(latitude: f32, longitude: f32) -> Self {
         Self {
             format: GpsUnits::Decimal,
             latitude,
@@ -38,36 +40,37 @@ impl GpsCoordinate {
     }
 
     /// Get the latitude.
-    pub fn latitude_decimal(&self) -> f32 {
+    pub const fn latitude_decimal(&self) -> f32 {
         self.latitude
     }
 
     /// Get the longitude.
-    pub fn longitude_decimal(&self) -> f32 {
+    pub const fn longitude_decimal(&self) -> f32 {
         self.longitude
     }
 
     /// Set the latitude.
-    pub fn set_latitude_decimal(&mut self, latitude: f32) {
+    pub const fn set_latitude_decimal(&mut self, latitude: f32) {
         self.latitude = latitude;
     }
 
     /// Set the longitude.
-    pub fn set_longitude_decimal(&mut self, longitude: f32) {
+    pub const fn set_longitude_decimal(&mut self, longitude: f32) {
         self.longitude = longitude;
     }
 
     /// Get the format of the GPS coordinate.
-    pub fn format(&self) -> GpsUnits {
+    pub const fn format(&self) -> GpsUnits {
         self.format
     }
 
     /// Set the format of the GPS coordinate.
-    pub fn set_format(&mut self, format: GpsUnits) {
+    pub const fn set_format(&mut self, format: GpsUnits) {
         self.format = format;
     }
 
     /// Get the latitude from DMS (degrees, minutes, seconds) format.
+    #[allow(clippy::cast_possible_truncation)]
     pub fn latitude_dms(&self) -> (i16, i16, f32) {
         let degrees = self.latitude.abs() as i16;
         let minutes = ((self.latitude.abs() - f32::from(degrees)) * 60.0) as i16;
@@ -77,6 +80,7 @@ impl GpsCoordinate {
     }
 
     /// Get the longitude from DMS (degrees, minutes, seconds) format.
+    #[allow(clippy::cast_possible_truncation)]
     pub fn longitude_dms(&self) -> (i16, i16, f32) {
         let degrees = self.longitude.abs() as i16;
         let minutes = ((self.longitude.abs() - f32::from(degrees)) * 60.0) as i16;

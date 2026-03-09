@@ -16,25 +16,25 @@ pub enum Temperature {
 impl Temperature {
     /// Create a new `Temperature` from a Celsius value.
     #[must_use]
-    pub fn from_celsius(celsius: f32) -> Self {
+    pub const fn from_celsius(celsius: f32) -> Self {
         Self::Celsius(celsius)
     }
 
     /// Create a new `Temperature` from a Fahrenheit value.
     #[must_use]
-    pub fn from_fahrenheit(fahrenheit: f32) -> Self {
+    pub const fn from_fahrenheit(fahrenheit: f32) -> Self {
         Self::Fahrenheit(fahrenheit)
     }
 
     /// Create a new `Temperature` from a Kelvin value.
     #[must_use]
-    pub fn from_kelvin(kelvin: f32) -> Self {
+    pub const fn from_kelvin(kelvin: f32) -> Self {
         Self::Kelvin(kelvin)
     }
 
     /// Create a new `Temperature` from a Rankine value.
     #[must_use]
-    pub fn from_rankine(rankine: f32) -> Self {
+    pub const fn from_rankine(rankine: f32) -> Self {
         Self::Rankine(rankine)
     }
 

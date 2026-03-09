@@ -1,3 +1,4 @@
+#![allow(unreachable_patterns)]
 use super::battery::BatteryStatus;
 use super::direction::WindDirection;
 use super::leak::LeakDetector;

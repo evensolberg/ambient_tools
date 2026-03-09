@@ -169,10 +169,11 @@ impl Config {
                     .unwrap_or(&empty_string),
             );
             config.limit = *weather_args.get_one::<u16>("limit").unwrap_or(&288);
+            let default_filename_pattern = String::from("%Y-%m-%d.json");
             config.filename_pattern.clone_from(
                 weather_args
                     .get_one::<String>("filename-pattern")
-                    .unwrap_or(&String::from("%Y-%m-%d.json")),
+                    .unwrap_or(&default_filename_pattern),
             );
             config.station_name.clone_from(
                 weather_args

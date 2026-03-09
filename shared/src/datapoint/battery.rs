@@ -21,7 +21,7 @@ impl BatteryStatus {
     /// Create a new `BatteryStatus` from a number.
     /// 0 = Low, 1 = OK, any other number = Unknown
     #[must_use]
-    pub fn from_number(num: u8) -> Self {
+    pub const fn from_number(num: u8) -> Self {
         match num {
             0 => Self::Low,
             1 => Self::Ok,
@@ -33,7 +33,7 @@ impl BatteryStatus {
     /// Use this for sensors that have opposite values for battery status.
     /// 0 = OK, 1 = Low, any other number = Unknown
     #[must_use]
-    pub fn from_number_reversed(num: u8) -> Self {
+    pub const fn from_number_reversed(num: u8) -> Self {
         match num {
             0 => Self::Ok,
             1 => Self::Low,
@@ -43,7 +43,7 @@ impl BatteryStatus {
 
     /// Get the number representation of the battery status.
     #[must_use]
-    pub fn to_number(&self) -> u8 {
+    pub const fn to_number(&self) -> u8 {
         match self {
             Self::Low => 0,
             Self::Ok => 1,
