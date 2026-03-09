@@ -1,7 +1,7 @@
 ---
 id: at-1d2
 title: No HTTP request timeout configured
-status: open
+status: closed
 type: bug
 priority: 1
 tags:
@@ -9,7 +9,7 @@ tags:
 - network
 created: 2026-03-08
 updated: 2026-03-08
-closed_reason: ''
+closed_reason: device.rs now uses reqwest::blocking::Client with 30s timeout instead of one-shot blocking::get()
 dependencies: []
 ---
 

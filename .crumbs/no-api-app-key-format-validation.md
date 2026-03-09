@@ -1,7 +1,7 @@
 ---
 id: at-wy5
 title: No API/App key format validation
-status: open
+status: closed
 type: bug
 priority: 1
 tags:
@@ -9,7 +9,7 @@ tags:
 - validation
 created: 2026-03-08
 updated: 2026-03-08
-closed_reason: ''
+closed_reason: is_valid_api_key() checks 64-char hex; called via Query::validate() for both api_key and app_key before API requests
 dependencies: []
 ---
 

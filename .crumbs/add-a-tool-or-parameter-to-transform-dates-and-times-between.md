@@ -1,7 +1,7 @@
 ---
 id: at-8r6
 title: Add a tool or parameter to transform dates and times between UTC and local
-status: open
+status: closed
 type: feature
 priority: 1
 tags:
@@ -9,7 +9,7 @@ tags:
 - timezone
 created: 2026-03-08
 updated: 2026-03-08
-closed_reason: ''
+closed_reason: timezone subcommand now accepts optional DATETIME arg and prints both UTC->local and local->UTC conversions
 dependencies: []
 ---
 

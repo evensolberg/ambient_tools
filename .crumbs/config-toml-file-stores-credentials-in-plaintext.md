@@ -1,7 +1,7 @@
 ---
 id: at-u0j
 title: Config TOML file stores credentials in plaintext
-status: open
+status: closed
 type: task
 priority: 1
 tags:
@@ -9,7 +9,7 @@ tags:
 - config
 created: 2026-03-08
 updated: 2026-03-08
-closed_reason: ''
+closed_reason: to_file() now logs a warn! after writing reminding user to chmod 600 and exclude from VCS
 dependencies: []
 ---
 

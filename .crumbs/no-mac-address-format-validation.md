@@ -1,7 +1,7 @@
 ---
 id: at-hsw
 title: No MAC address format validation
-status: open
+status: closed
 type: bug
 priority: 1
 tags:
@@ -9,7 +9,7 @@ tags:
 - validation
 created: 2026-03-08
 updated: 2026-03-08
-closed_reason: ''
+closed_reason: is_valid_mac() validates XX:XX:XX:XX:XX:XX / XX-XX-XX-XX-XX-XX / XXXXXXXXXXXX; called via Query::validate() before API requests
 dependencies: []
 ---
 

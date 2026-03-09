@@ -1,7 +1,7 @@
 ---
 id: at-piu
 title: Zero test coverage for ambient_download crate
-status: open
+status: closed
 type: task
 priority: 1
 tags:
@@ -9,7 +9,7 @@ tags:
 - quality
 created: 2026-03-08
 updated: 2026-03-08
-closed_reason: ''
+closed_reason: '16 unit tests added: 10 in creds::tests for validate(), 6 in weather::download::tests for utilities and sleep scaling'
 dependencies: []
 ---
 

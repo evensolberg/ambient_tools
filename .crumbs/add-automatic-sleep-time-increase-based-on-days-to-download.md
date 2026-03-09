@@ -1,7 +1,7 @@
 ---
 id: at-0i6
 title: Add automatic sleep time increase based on days to download
-status: open
+status: closed
 type: feature
 priority: 1
 tags:
@@ -9,7 +9,7 @@ tags:
 - network
 created: 2026-03-08
 updated: 2026-03-08
-closed_reason: ''
+closed_reason: 'recommended_sleep_for_days() auto-scales when --sleep-time is at default: 6-15d=30s, 16-30d=60s, 31-90d=120s, 91+d=300s; logs the adjustment'
 dependencies: []
 ---
 

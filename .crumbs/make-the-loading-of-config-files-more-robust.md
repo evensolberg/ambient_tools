@@ -1,7 +1,7 @@
 ---
 id: at-8ad
 title: Make the loading of config files more robust
-status: open
+status: closed
 type: bug
 priority: 1
 tags:
@@ -9,7 +9,7 @@ tags:
 - config
 created: 2026-03-08
 updated: 2026-03-08
-closed_reason: ''
+closed_reason: from_file() wraps I/O and parse errors with filename and 'run newconfig' hint; validate() gives per-field errors before API calls
 dependencies: []
 ---
 
