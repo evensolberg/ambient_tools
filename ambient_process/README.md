@@ -15,6 +15,10 @@ Reads Ambient Weather JSON data files (produced by `ambient_download`) and expor
       - [Unit conversion](#unit-conversion)
       - [Field selection](#field-selection)
     - [`prettify` subcommand](#prettify-subcommand)
+    - [`reorganize` subcommand](#reorganize-subcommand)
+      - [Pattern tokens](#pattern-tokens)
+      - [Config file](#config-file)
+      - [Examples](#examples)
 
 ---
 
@@ -48,9 +52,10 @@ Options:
                                  [default: 1] [env: AMBIENT_WEATHER_DETAIL_LEVEL]
 
 Commands:
-  convert   Convert JSON weather files to CSV
-  prettify  Pretty-print JSON weather files in place
-  help      Print this message or the help of a subcommand
+  convert     Convert JSON weather files to CSV
+  prettify    Pretty-print JSON weather files in place
+  reorganize  Rename and reorganize JSON weather files using a filename pattern
+  help        Print this message or the help of a subcommand
 ```
 
 ### Global options
@@ -189,3 +194,74 @@ ambient_process prettify 'data/2026-02-*.json'
 ```
 
 The original files are overwritten. The JSON content is unchanged — only whitespace formatting is affected.
+
+---
+
+### `reorganize` subcommand
+
+Moves already-downloaded JSON weather files into a new directory structure based on the date found in each file's first record. Supports strftime tokens and `{mac}`/`{station}` placeholders — the same pattern syntax used by `ambient_download`.
+
+```text
+ambient_process reorganize [OPTIONS] <FILES>...
+
+Arguments:
+  <FILES>    Input JSON files or glob patterns
+
+Options:
+  -p, --pattern <PATTERN>    Output filename pattern [default: %Y-%m-%d.json]
+  -o, --output-dir <DIR>     Base output directory [default: .]
+      --mac <MAC>            MAC address for the {mac} token
+      --station <STATION>    Station name for the {station} token
+  -c, --config <FILE>        TOML config file (same format as ambient_download)
+  -n, --dry-run              Show planned moves without executing them
+```
+
+#### Pattern tokens
+
+| Token | Expands to |
+| --- | --- |
+| `%Y`, `%m`, `%d`, … | strftime date components from the file's first record |
+| `{mac}` | Normalized MAC address (`AA-BB-CC-DD-EE-FF`) |
+| `{station}` | Station name, or normalized MAC if no name is set |
+
+#### Config file
+
+Use `-c` to point at an existing `ambient_download.toml`. The command reads `filename_pattern`, `output_folder`, `mac_address`, and `station_name` from it. CLI flags override config values when both are provided.
+
+#### Examples
+
+Preview what would be moved (dry run):
+
+```shell
+ambient_process reorganize --dry-run \
+  --pattern '%Y/%m/%Y-%m-%d.json' \
+  'data/*.json'
+```
+
+Reorganize files into year/month subdirectories:
+
+```shell
+ambient_process reorganize \
+  --pattern '%Y/%m/%Y-%m-%d.json' \
+  --output-dir /archive/weather \
+  'data/*.json'
+```
+
+Reorganize using settings from an existing config file:
+
+```shell
+ambient_process reorganize \
+  -c ambient_download.toml \
+  'data/*.json'
+```
+
+Include station name in the directory structure:
+
+```shell
+ambient_process reorganize \
+  --pattern '{station}/%Y/%m/%Y-%m-%d.json' \
+  --station roof \
+  'data/*.json'
+```
+
+Files whose target path already exists are skipped with a warning.

@@ -4,5 +4,6 @@
 //! the `datapoint` type system.
 
 pub mod export;
+pub mod filename;
 pub mod filter;
 pub mod reader;

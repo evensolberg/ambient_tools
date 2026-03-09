@@ -97,4 +97,70 @@ pub fn build_cli() -> Command {
                         .action(clap::ArgAction::Append),
                 ),
         )
+        .subcommand(
+            Command::new("reorganize")
+                .about("Rename and reorganize JSON weather files using a filename pattern.")
+                .long_about(
+                    "Move already-downloaded JSON weather data files into a new directory \
+                     structure based on the date found in each file's first record. \
+                     Supports strftime tokens and {mac}/{station} placeholders.",
+                )
+                .arg(
+                    Arg::new("files")
+                        .value_name("FILES")
+                        .help("Input JSON files or glob patterns.")
+                        .required(true)
+                        .num_args(1..)
+                        .action(clap::ArgAction::Append),
+                )
+                .arg(
+                    Arg::new("pattern")
+                        .short('p')
+                        .long("pattern")
+                        .help(
+                            "Output filename pattern (strftime + {mac}/{station} tokens). \
+                             Example: '%Y/%m/{station}-%Y-%m-%d.json'",
+                        )
+                        .action(clap::ArgAction::Set)
+                        .default_value("%Y-%m-%d.json"),
+                )
+                .arg(
+                    Arg::new("output-dir")
+                        .short('o')
+                        .long("output-dir")
+                        .help("Base output directory [default: .]")
+                        .action(clap::ArgAction::Set)
+                        .default_value("."),
+                )
+                .arg(
+                    Arg::new("mac")
+                        .long("mac")
+                        .help("MAC address for the {mac} token.")
+                        .action(clap::ArgAction::Set),
+                )
+                .arg(
+                    Arg::new("station")
+                        .long("station")
+                        .help("Station name for the {station} token.")
+                        .action(clap::ArgAction::Set),
+                )
+                .arg(
+                    Arg::new("config")
+                        .short('c')
+                        .long("config")
+                        .help(
+                            "TOML config file (same format as ambient_download). \
+                             Reads mac_address, station_name, filename_pattern, \
+                             and output_folder. CLI flags override config values.",
+                        )
+                        .action(clap::ArgAction::Set),
+                )
+                .arg(
+                    Arg::new("dry-run")
+                        .short('n')
+                        .long("dry-run")
+                        .help("Show planned moves without executing them.")
+                        .action(clap::ArgAction::SetTrue),
+                ),
+        )
 }
