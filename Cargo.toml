@@ -15,13 +15,13 @@ repository = "https://github.com/evensolberg/ambient_tools"
 homepage = "https://github.com/evensolberg/ambient_tools"
 
 [workspace.dependencies]
-chrono = { version = "0.4.42", features = ["serde"] }
+chrono = { version = "0.4.44", features = ["serde"] }
 chrono-tz = { version = "0.10.4", features = [ "case-insensitive", "serde" ] }
-clap = { version = "4.5.54", features = ["cargo", "env", "wrap_help"] }
-env_logger = "0.11.8"
-iana-time-zone = "0.1.64"
+clap = { version = "4.5.60", features = ["cargo", "env", "wrap_help"] }
+env_logger = "0.11.9"
+iana-time-zone = "0.1.65"
 log = "0.4.29"
-reqwest = { version = "0.13.1", features = ["json", "blocking"] } # reqwest with JSON parsing support
+reqwest = { version = "0.13.2", features = ["json", "blocking"] } # reqwest with JSON parsing support
 serde = { version = "1.0.228", features = ["derive"] } # for JSON serialization
 serde_json = "1.0.149"
 toml = "0.9.8"
