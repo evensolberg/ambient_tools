@@ -59,6 +59,27 @@ pub const ALL_FIELDS: &[&str] = &[
     "temp_in",
     "humidity_in",
     "co2",
+    "last_rain",
+    "temp_1",
+    "humidity_1",
+    "temp_2",
+    "humidity_2",
+    "temp_3",
+    "humidity_3",
+    "temp_4",
+    "humidity_4",
+    "temp_5",
+    "humidity_5",
+    "temp_6",
+    "humidity_6",
+    "temp_7",
+    "humidity_7",
+    "temp_8",
+    "humidity_8",
+    "temp_9",
+    "humidity_9",
+    "temp_10",
+    "humidity_10",
 ];
 
 /// Write weather records as CSV.
@@ -98,6 +119,18 @@ pub fn write_csv<W: Write>(
 
     wtr.flush()?;
     Ok(())
+}
+
+/// Returns the subset of [`ALL_FIELDS`] that have at least one non-empty value across `records`.
+///
+/// Useful for discovering which fields are actually populated by a particular station before
+/// building a `[process.convert] fields = [...]` config entry.
+pub fn fields_with_data(records: &[WeatherDataPoint], units: SystemOfUnits) -> Vec<&'static str> {
+    ALL_FIELDS
+        .iter()
+        .copied()
+        .filter(|&f| records.iter().any(|r| !cell(r, f, units).is_empty()))
+        .collect()
 }
 
 /// Render a single cell value for a given column name and record.
@@ -332,6 +365,122 @@ pub(super) fn cell(r: &WeatherDataPoint, col: &str, units: SystemOfUnits) -> Str
             .unwrap_or_default(),
 
         "co2" => r.co2_ppm.map(|c: u16| c.to_string()).unwrap_or_default(),
+
+        "last_rain" => r
+            .last_rain
+            .map(|dt| dt.format("%Y-%m-%d %H:%M:%S").to_string())
+            .unwrap_or_default(),
+
+        "temp_1" => r
+            .temp_1
+            .map(|t: Temperature| {
+                if units == SystemOfUnits::SI {
+                    format!("{:.1}", t.to_celsius())
+                } else {
+                    format!("{:.1}", t.to_fahrenheit())
+                }
+            })
+            .unwrap_or_default(),
+        "humidity_1" => r.humidity_1.map(|h: u8| h.to_string()).unwrap_or_default(),
+        "temp_2" => r
+            .temp_2
+            .map(|t: Temperature| {
+                if units == SystemOfUnits::SI {
+                    format!("{:.1}", t.to_celsius())
+                } else {
+                    format!("{:.1}", t.to_fahrenheit())
+                }
+            })
+            .unwrap_or_default(),
+        "humidity_2" => r.humidity_2.map(|h: u8| h.to_string()).unwrap_or_default(),
+        "temp_3" => r
+            .temp_3
+            .map(|t: Temperature| {
+                if units == SystemOfUnits::SI {
+                    format!("{:.1}", t.to_celsius())
+                } else {
+                    format!("{:.1}", t.to_fahrenheit())
+                }
+            })
+            .unwrap_or_default(),
+        "humidity_3" => r.humidity_3.map(|h: u8| h.to_string()).unwrap_or_default(),
+        "temp_4" => r
+            .temp_4
+            .map(|t: Temperature| {
+                if units == SystemOfUnits::SI {
+                    format!("{:.1}", t.to_celsius())
+                } else {
+                    format!("{:.1}", t.to_fahrenheit())
+                }
+            })
+            .unwrap_or_default(),
+        "humidity_4" => r.humidity_4.map(|h: u8| h.to_string()).unwrap_or_default(),
+        "temp_5" => r
+            .temp_5
+            .map(|t: Temperature| {
+                if units == SystemOfUnits::SI {
+                    format!("{:.1}", t.to_celsius())
+                } else {
+                    format!("{:.1}", t.to_fahrenheit())
+                }
+            })
+            .unwrap_or_default(),
+        "humidity_5" => r.humidity_5.map(|h: u8| h.to_string()).unwrap_or_default(),
+        "temp_6" => r
+            .temp_6
+            .map(|t: Temperature| {
+                if units == SystemOfUnits::SI {
+                    format!("{:.1}", t.to_celsius())
+                } else {
+                    format!("{:.1}", t.to_fahrenheit())
+                }
+            })
+            .unwrap_or_default(),
+        "humidity_6" => r.humidity_6.map(|h: u8| h.to_string()).unwrap_or_default(),
+        "temp_7" => r
+            .temp_7
+            .map(|t: Temperature| {
+                if units == SystemOfUnits::SI {
+                    format!("{:.1}", t.to_celsius())
+                } else {
+                    format!("{:.1}", t.to_fahrenheit())
+                }
+            })
+            .unwrap_or_default(),
+        "humidity_7" => r.humidity_7.map(|h: u8| h.to_string()).unwrap_or_default(),
+        "temp_8" => r
+            .temp_8
+            .map(|t: Temperature| {
+                if units == SystemOfUnits::SI {
+                    format!("{:.1}", t.to_celsius())
+                } else {
+                    format!("{:.1}", t.to_fahrenheit())
+                }
+            })
+            .unwrap_or_default(),
+        "humidity_8" => r.humidity_8.map(|h: u8| h.to_string()).unwrap_or_default(),
+        "temp_9" => r
+            .temp_9
+            .map(|t: Temperature| {
+                if units == SystemOfUnits::SI {
+                    format!("{:.1}", t.to_celsius())
+                } else {
+                    format!("{:.1}", t.to_fahrenheit())
+                }
+            })
+            .unwrap_or_default(),
+        "humidity_9" => r.humidity_9.map(|h: u8| h.to_string()).unwrap_or_default(),
+        "temp_10" => r
+            .temp_10
+            .map(|t: Temperature| {
+                if units == SystemOfUnits::SI {
+                    format!("{:.1}", t.to_celsius())
+                } else {
+                    format!("{:.1}", t.to_fahrenheit())
+                }
+            })
+            .unwrap_or_default(),
+        "humidity_10" => r.humidity_10.map(|h: u8| h.to_string()).unwrap_or_default(),
 
         _ => String::new(),
     }

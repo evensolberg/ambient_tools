@@ -5,10 +5,11 @@ mod cli;
 use anyhow::{Context, Result};
 use chrono::{NaiveDate, TimeZone};
 use shared::{
+    config::{resolve_config_path, ProcessConfig},
     datapoint::units::SystemOfUnits,
     pipeline::{
         export::{
-            csv::{write_csv, ALL_FIELDS},
+            csv::{fields_with_data, write_csv, ALL_FIELDS},
             toon::write_toon,
         },
         filename::format_output_filename,
@@ -31,9 +32,10 @@ fn main() -> Result<()> {
     env_logger::builder().filter_level(level).init();
 
     match matches.subcommand() {
-        Some(("convert", args)) => cmd_convert(args),
+        Some(("convert", args)) => cmd_convert(&matches, args),
+        Some(("fields", args)) => cmd_fields(args),
         Some(("prettify", args)) => cmd_prettify(args),
-        Some(("reorganize", args)) => cmd_reorganize(args),
+        Some(("reorganize", args)) => cmd_reorganize(&matches, args),
         _ => {
             cli::build_cli().print_long_help()?;
             Ok(())
@@ -41,7 +43,37 @@ fn main() -> Result<()> {
     }
 }
 
-fn cmd_convert(args: &clap::ArgMatches) -> Result<()> {
+/// Count the number of files matched by a slice of glob patterns.
+fn count_files(patterns: &[&String]) -> usize {
+    patterns
+        .iter()
+        .flat_map(|p| glob::glob(p).into_iter().flatten().filter_map(Result::ok))
+        .count()
+}
+
+/// Returns the config path with priority: subcommand flag > top-level flag > env > cwd.
+fn resolve_for_subcommand(
+    top: &clap::ArgMatches,
+    sub: &clap::ArgMatches,
+) -> Option<std::path::PathBuf> {
+    let explicit = sub
+        .get_one::<String>("config")
+        .or_else(|| top.get_one::<String>("config"))
+        .map(String::as_str);
+    resolve_config_path(explicit)
+}
+
+fn cmd_convert(top: &clap::ArgMatches, args: &clap::ArgMatches) -> Result<()> {
+    // Load process config (CLI flags override config values).
+    let cfg_path = resolve_for_subcommand(top, args);
+    let process_cfg = cfg_path
+        .as_deref()
+        .map(|p| ProcessConfig::from_file(p.to_str().unwrap_or("")))
+        .transpose()
+        .context("Failed to load process config")?
+        .unwrap_or_default();
+    let convert_cfg = process_cfg.convert.unwrap_or_default();
+
     // Collect all input patterns
     let patterns: Vec<&String> = args.get_many("files").unwrap_or_default().collect();
 
@@ -54,19 +86,21 @@ fn cmd_convert(args: &clap::ArgMatches) -> Result<()> {
     }
     records.sort_by_key(|r| r.dateutc);
     log::info!(
-        "Loaded {} records from {} pattern(s).",
+        "Loaded {} records from {} file(s).",
         records.len(),
-        patterns.len()
+        count_files(&patterns)
     );
 
-    // Date filter
-    let from = args
-        .get_one::<String>("from")
+    // Date filter: CLI > config
+    let from_str = args.get_one::<String>("from").cloned().or(convert_cfg.from);
+    let to_str = args.get_one::<String>("to").cloned().or(convert_cfg.to);
+    let from = from_str
+        .as_deref()
         .map(|s| NaiveDate::parse_from_str(s, "%Y-%m-%d"))
         .transpose()
         .context("--from date must be YYYY-MM-DD")?;
-    let to = args
-        .get_one::<String>("to")
+    let to = to_str
+        .as_deref()
         .map(|s| NaiveDate::parse_from_str(s, "%Y-%m-%d"))
         .transpose()
         .context("--to date must be YYYY-MM-DD")?;
@@ -74,29 +108,51 @@ fn cmd_convert(args: &clap::ArgMatches) -> Result<()> {
     let records = filter.apply(records);
     log::info!("{} records after date filter.", records.len());
 
-    // Unit system
-    let units = match args.get_one::<String>("units").map(String::as_str) {
-        Some("si") => SystemOfUnits::SI,
+    // Unit system: CLI > config > default imperial
+    let units_str = if args.value_source("units") != Some(clap::parser::ValueSource::DefaultValue) {
+        args.get_one::<String>("units")
+            .map(String::as_str)
+            .unwrap_or("imperial")
+    } else {
+        convert_cfg.units.as_deref().unwrap_or("imperial")
+    };
+    let units = match units_str {
+        "si" => SystemOfUnits::SI,
         _ => SystemOfUnits::Imperial,
     };
 
-    // Field list
-    let fields_override: Option<Vec<&str>> = args.get_one::<String>("fields").map(|s| {
-        if s == "all" {
-            ALL_FIELDS.to_vec()
+    // Field list: CLI > config
+    let fields_override: Option<Vec<String>> = if let Some(s) = args.get_one::<String>("fields") {
+        Some(if s == "all" {
+            ALL_FIELDS.iter().map(|&f| f.to_string()).collect()
         } else {
-            s.split(',').map(str::trim).collect()
-        }
-    });
-    let fields: Option<&[&str]> = fields_override.as_deref();
+            s.split(',').map(|f| f.trim().to_string()).collect()
+        })
+    } else {
+        convert_cfg.fields
+    };
+    let fields_strs: Option<Vec<&str>> = fields_override
+        .as_ref()
+        .map(|v| v.iter().map(String::as_str).collect());
+    let fields: Option<&[&str]> = fields_strs.as_deref();
 
-    // Output format
-    let format = args
-        .get_one::<String>("format")
-        .map_or("csv", String::as_str);
+    // Output format: CLI > config > default csv
+    let format = if args.value_source("format") != Some(clap::parser::ValueSource::DefaultValue) {
+        args.get_one::<String>("format")
+            .map(String::as_str)
+            .unwrap_or("csv")
+    } else {
+        convert_cfg.format.as_deref().unwrap_or("csv")
+    };
+
+    // Output path: CLI > config > None (stdout)
+    let output = args
+        .get_one::<String>("output")
+        .cloned()
+        .or(convert_cfg.output);
 
     // Write output
-    if let Some(path) = args.get_one::<String>("output") {
+    if let Some(ref path) = output {
         let file = std::fs::File::create(path)
             .with_context(|| format!("Failed to create output file: {path}"))?;
         match format {
@@ -112,6 +168,37 @@ fn cmd_convert(args: &clap::ArgMatches) -> Result<()> {
             _ => write_csv(handle, &records, fields, units)?,
         }
     }
+
+    Ok(())
+}
+
+fn cmd_fields(args: &clap::ArgMatches) -> Result<()> {
+    let patterns: Vec<&String> = args.get_many("files").unwrap_or_default().collect();
+
+    let mut records = Vec::new();
+    for pattern in &patterns {
+        let mut batch = read_glob(pattern)
+            .with_context(|| format!("Failed to read files matching: {pattern}"))?;
+        records.append(&mut batch);
+    }
+    log::info!(
+        "Loaded {} records from {} file(s).",
+        records.len(),
+        count_files(&patterns)
+    );
+
+    let present = fields_with_data(&records, SystemOfUnits::Imperial);
+
+    // Print in TOML array syntax, one field per line for readability.
+    print!("fields = [");
+    for (i, field) in present.iter().enumerate() {
+        if i == 0 {
+            print!("\n  \"{field}\"");
+        } else {
+            print!(",\n  \"{field}\"");
+        }
+    }
+    println!("\n]");
 
     Ok(())
 }
@@ -145,21 +232,21 @@ fn cmd_prettify(args: &clap::ArgMatches) -> Result<()> {
     Ok(())
 }
 
-fn cmd_reorganize(args: &clap::ArgMatches) -> Result<()> {
+fn cmd_reorganize(top: &clap::ArgMatches, args: &clap::ArgMatches) -> Result<()> {
     // Load config file if provided; CLI flags override its values.
-    let config = args
-        .get_one::<String>("config")
-        .map(|path| {
-            shared::config::Config::from_file(path)
-                .with_context(|| format!("Failed to read config file: {path}"))
+    let cfg_path = resolve_for_subcommand(top, args);
+    let config = cfg_path
+        .as_deref()
+        .map(|p| {
+            shared::config::Config::from_file(p.to_str().unwrap_or(""))
+                .with_context(|| format!("Failed to read config file: {}", p.display()))
         })
         .transpose()?;
 
     let default_pattern = String::from("%Y-%m-%d.json");
     let default_output_dir = String::from(".");
 
-    let pattern = if args.value_source("pattern") != Some(clap::parser::ValueSource::DefaultValue)
-    {
+    let pattern = if args.value_source("pattern") != Some(clap::parser::ValueSource::DefaultValue) {
         args.get_one::<String>("pattern")
             .unwrap_or(&default_pattern)
             .clone()
@@ -169,17 +256,16 @@ fn cmd_reorganize(args: &clap::ArgMatches) -> Result<()> {
         default_pattern
     };
 
-    let output_dir = if args.value_source("output-dir")
-        != Some(clap::parser::ValueSource::DefaultValue)
-    {
-        args.get_one::<String>("output-dir")
-            .unwrap_or(&default_output_dir)
-            .clone()
-    } else if let Some(ref cfg) = config {
-        cfg.output_folder.clone()
-    } else {
-        default_output_dir
-    };
+    let output_dir =
+        if args.value_source("output-dir") != Some(clap::parser::ValueSource::DefaultValue) {
+            args.get_one::<String>("output-dir")
+                .unwrap_or(&default_output_dir)
+                .clone()
+        } else if let Some(ref cfg) = config {
+            cfg.output_folder.clone()
+        } else {
+            default_output_dir
+        };
 
     let mac = args
         .get_one::<String>("mac")
@@ -204,10 +290,7 @@ fn cmd_reorganize(args: &clap::ArgMatches) -> Result<()> {
     for glob_pattern in &patterns {
         let paths: Vec<_> = glob::glob(glob_pattern)
             .with_context(|| format!("Invalid glob: {glob_pattern}"))?
-            .filter_map(|e| {
-                e.map_err(|err| log::warn!("Glob error: {err}"))
-                    .ok()
-            })
+            .filter_map(|e| e.map_err(|err| log::warn!("Glob error: {err}")).ok())
             .collect();
 
         for path in paths {
@@ -223,7 +306,9 @@ fn cmd_reorganize(args: &clap::ArgMatches) -> Result<()> {
     }
 
     if dry_run {
-        log::info!("Dry run: {moved} file(s) would be moved, {skipped} skipped, {errors} error(s).");
+        log::info!(
+            "Dry run: {moved} file(s) would be moved, {skipped} skipped, {errors} error(s)."
+        );
     } else {
         log::info!("Done: {moved} file(s) moved, {skipped} skipped, {errors} error(s).");
     }

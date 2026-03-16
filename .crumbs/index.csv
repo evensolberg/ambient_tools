@@ -1,5 +1,6 @@
 id,title,status,type,priority,tags,created,updated,closed_reason,story_points
 at-0i6,Add automatic sleep time increase based on days to download,closed,feature,1,ambient-download|network,2026-03-08,2026-03-08,"recommended_sleep_for_days() auto-scales when --sleep-time is at default: 6-15d=30s, 16-30d=60s, 31-90d=120s, 91+d=300s; logs the adjustment",
+at-13y,Ambient_process config file,open,feature,2,,2026-03-09,2026-03-15,,
 at-1d2,No HTTP request timeout configured,closed,bug,1,robustness|network,2026-03-08,2026-03-08,device.rs now uses reqwest::blocking::Client with 30s timeout instead of one-shot blocking::get(),
 at-1qd,json2csv crate is a non-functional stub,closed,bug,1,maintainability|json2csv,2026-03-08,2026-03-08,Deleted the directory. Not needed.,
 at-3tr,Add TOON export format to ambient_process,closed,feature,2,ambient-process|export|toon,2026-03-08,2026-03-08,Implemented in ambient_process v0.2.0 / workspace v0.5.0,
@@ -14,6 +15,7 @@ at-ae8,Add input validation for keys and MAC address,closed,feature,2,ambient-do
 at-ap3,Double unwrap panic risk in weather/download.rs,closed,bug,0,robustness|panic,2026-03-08,2026-03-08,"Replaced .unwrap() on LocalResult with exhaustive match: Single returns the value, Ambiguous takes the earlier occurrence, None falls back to arithmetic addition",
 at-bsr,Add -n option to specify the number of days to download,closed,feature,1,ambient-download,2026-03-08,2026-03-08,"weather subcommand already has --days/-d flag (value_parser u16, range 1..=1095)",
 at-c7p,Build data processing pipeline on top of datapoint types,closed,feature,4,shared|datapoint|json|reporting,2026-03-08,2026-03-08,,
+at-dcq,need to be able to rename and reorganize files,closed,task,2,,2026-03-08,2026-03-09,completed,
 at-ema,Config struct Serialize impl exposes credentials,closed,task,2,security|maintainability,2026-03-08,2026-03-08,Config no longer derives Serialize. Custom Serialize impl redacts api_key and app_key. File I/O uses private ConfigToml struct (full credentials) via From<&Config>. Safe serialization is now the default.,
 at-g36,Figure out time offset automagically,closed,feature,2,ambient-download|timezone,2026-03-08,2026-03-08,"Config.tz_name defaults to iana_time_zone::get_timezone() in Config::default(), so local timezone is auto-detected when not explicitly supplied.",
 at-hsw,No MAC address format validation,closed,bug,1,security|validation,2026-03-08,2026-03-08,is_valid_mac() validates XX:XX:XX:XX:XX:XX / XX-XX-XX-XX-XX-XX / XXXXXXXXXXXX; called via Query::validate() before API requests,
@@ -22,6 +24,7 @@ at-ih0,Build a client for downloads,closed,bug,0,ambient-download|network,2026-0
 at-j3l,Playground crate should be removed from workspace,closed,task,3,maintainability|workspace,2026-03-08,2026-03-08,playground removed from workspace members in Cargo.toml during P0 fix session.,
 at-mj9,Add JSON file name pattern support,closed,feature,2,ambient-download,2026-03-08,2026-03-08,"Implemented strftime filename pattern with {mac} token, subdir creation, CLI --filename-pattern flag, config field, and 5 unit tests",
 at-pcc,Switch to using timezone instead of offset,closed,feature,1,ambient-download|timezone,2026-03-08,2026-03-08,Config.tz_name stores IANA name; get_offset_from_tz() computes offset dynamically via chrono-tz,
+at-pdz,Update the ambient_process CLI to clarify that convert also covers TOON,open,task,2,,2026-03-09,2026-03-09,,
 at-piu,Zero test coverage for ambient_download crate,closed,task,1,testing|quality,2026-03-08,2026-03-08,"16 unit tests added: 10 in creds::tests for validate(), 6 in weather::download::tests for utilities and sleep scaling",
 at-qf0,Add option to write MAC address to config after device download,closed,feature,2,ambient-download|config,2026-03-08,2026-03-08,Implemented --save-mac flag on device subcommand. Parses MAC from JSON response and writes back to config file. Warns on multiple devices or missing --config-file.,
 at-u0j,Config TOML file stores credentials in plaintext,closed,task,1,security|config,2026-03-08,2026-03-08,to_file() now logs a warn! after writing reminding user to chmod 600 and exclude from VCS,

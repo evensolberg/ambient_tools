@@ -10,14 +10,16 @@ Reads Ambient Weather JSON data files (produced by `ambient_download`) and expor
   - [Installation](#installation)
   - [Usage](#usage)
     - [Global options](#global-options)
+    - [Config file](#config-file)
     - [`convert` subcommand](#convert-subcommand)
       - [Default fields](#default-fields)
       - [Unit conversion](#unit-conversion)
       - [Field selection](#field-selection)
+    - [`fields` subcommand](#fields-subcommand)
     - [`prettify` subcommand](#prettify-subcommand)
     - [`reorganize` subcommand](#reorganize-subcommand)
       - [Pattern tokens](#pattern-tokens)
-      - [Config file](#config-file)
+      - [Reorganize config file](#reorganize-config-file)
       - [Examples](#examples)
 
 ---
@@ -50,9 +52,12 @@ ambient_process [OPTIONS] [COMMAND]
 Options:
   -d, --detail-level <detail>    Output detail level: 0=Quiet 1=Normal 2=Detailed 3=Debug
                                  [default: 1] [env: AMBIENT_WEATHER_DETAIL_LEVEL]
+  -c, --config <FILE>            TOML config file. Falls back to AMBIENT_WEATHER_CONFIG
+                                 env var, then ambient_download.toml in cwd.
 
 Commands:
-  convert     Convert JSON weather files to CSV
+  convert     Convert JSON weather files to CSV or TOON
+  fields      List fields that have data in one or more JSON files
   prettify    Pretty-print JSON weather files in place
   reorganize  Rename and reorganize JSON weather files using a filename pattern
   help        Print this message or the help of a subcommand
@@ -63,6 +68,42 @@ Commands:
 | Flag | Short | Description |
 | --- | --- | --- |
 | `--detail-level` | `-d` | Verbosity: 0 silent, 1 normal, 2 detailed, 3 debug |
+| `--config` | `-c` | TOML config file (see [Config file](#config-file)) |
+
+---
+
+### Config file
+
+Persistent defaults for `convert` can be stored in a TOML file under a `[process.convert]` section. This avoids repeating flags on every invocation.
+
+Config file resolution order (first match wins):
+
+1. `--config` flag on the subcommand (e.g. `convert -c myfile.toml`)
+2. `--config` flag on the top-level command (e.g. `ambient_process -c myfile.toml convert`)
+3. `AMBIENT_WEATHER_CONFIG` environment variable
+4. `ambient_download.toml` in the current working directory
+
+CLI flags always override config file values when both are present.
+
+Example `[process.convert]` section:
+
+```toml
+[process.convert]
+fields = [
+  "date",
+  "temp_out",
+  "humidity_out",
+  "wind_speed",
+  "daily_rain",
+]
+format = "csv"
+units  = "imperial"
+# output = "weather.csv"   # uncomment to default to a file
+# from   = "2026-01-01"
+# to     = "2026-12-31"
+```
+
+Use the [`fields` subcommand](#fields-subcommand) to discover which fields are actually populated by your station before building this list.
 
 ---
 
@@ -83,7 +124,10 @@ Options:
   -u, --units <si|imperial>    Unit system for exported values [default: imperial]
   -f, --fields <FIELDS>        Comma-separated field list, or 'all' for every field
       --format <csv|toon>      Output format [default: csv]
+  -c, --config <FILE>          TOML config file. Overrides top-level --config.
 ```
+
+All options except `--output` and `--format` can also be set in the config file (see [Config file](#config-file)). CLI flags take precedence.
 
 Example — convert all of February to a CSV in SI units:
 
@@ -176,6 +220,39 @@ ambient_process convert 'data/2026-02-*.json' \
 
 ---
 
+### `fields` subcommand
+
+Lists the field names that contain at least one non-empty value across the given JSON files. Output is in TOML array syntax, ready to paste into a `[process.convert]` config section.
+
+```text
+ambient_process fields <FILES>...
+
+Arguments:
+  <FILES>    Input JSON files or glob patterns
+```
+
+Example — discover what your station actually records:
+
+```shell
+ambient_process -d 0 fields 'data/*.json'
+```
+
+```toml
+fields = [
+  "date",
+  "temp_out",
+  "humidity_out",
+  "wind_speed",
+  "daily_rain",
+  "temp_in",
+  "humidity_in",
+]
+```
+
+Pass multiple files or a broad glob to get a union of all populated fields across your entire dataset. The `-d 0` flag suppresses the progress line so only the TOML output appears on stdout.
+
+---
+
 ### `prettify` subcommand
 
 Re-writes JSON files with indented formatting in place. Useful for inspecting raw data files in a text editor.
@@ -224,7 +301,7 @@ Options:
 | `{mac}` | Normalized MAC address (`AA-BB-CC-DD-EE-FF`) |
 | `{station}` | Station name, or normalized MAC if no name is set |
 
-#### Config file
+#### Reorganize config file
 
 Use `-c` to point at an existing `ambient_download.toml`. The command reads `filename_pattern`, `output_folder`, `mac_address`, and `station_name` from it. CLI flags override config values when both are provided.
 

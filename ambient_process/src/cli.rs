@@ -17,6 +17,17 @@ pub fn build_cli() -> Command {
                 .default_value("1")
                 .value_parser(clap::value_parser!(u8).range(..=4)),
         )
+        .arg(
+            Arg::new("config")
+                .short('c')
+                .long("config")
+                .help(
+                    "TOML config file (ambient_download.toml format). \
+                     CLI flags override config values. Falls back to \
+                     AMBIENT_WEATHER_CONFIG env var, then ambient_download.toml in cwd.",
+                )
+                .action(clap::ArgAction::Set),
+        )
         .subcommand(
             Command::new("convert")
                 .about("Convert JSON weather files to CSV.")
@@ -79,6 +90,30 @@ pub fn build_cli() -> Command {
                         .action(clap::ArgAction::Set)
                         .value_parser(["csv", "toon"])
                         .default_value("csv"),
+                )
+                .arg(
+                    Arg::new("config")
+                        .short('c')
+                        .long("config")
+                        .help("TOML config file. Overrides top-level --config for this subcommand.")
+                        .action(clap::ArgAction::Set),
+                ),
+        )
+        .subcommand(
+            Command::new("fields")
+                .about("List fields that have data in one or more JSON files.")
+                .long_about(
+                    "Read one or more JSON weather data files and print the field names \
+                     that contain at least one non-empty value. Output is in TOML array \
+                     syntax, ready to paste into a [process.convert] config section.",
+                )
+                .arg(
+                    Arg::new("files")
+                        .value_name("FILES")
+                        .help("Input JSON files or glob patterns.")
+                        .required(true)
+                        .num_args(1..)
+                        .action(clap::ArgAction::Append),
                 ),
         )
         .subcommand(
