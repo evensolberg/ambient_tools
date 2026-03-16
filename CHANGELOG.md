@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.1] - 2026-03-15
+
+### Features
+
+- Move ambient_download config under `[download]` section in TOML for consistency with `[process.convert]`
+
+### Miscellaneous Tasks
+
+- Bump ambient_download to v0.9.4, ambient_process and shared to v0.4.3
+
 ## [0.6.0] - 2026-03-15
 
 ### Features

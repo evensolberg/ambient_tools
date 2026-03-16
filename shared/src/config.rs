@@ -40,6 +40,18 @@ impl<'a> From<&'a Config> for ConfigToml<'a> {
     }
 }
 
+/// Private wrapper for serializing `Config` under a `[download]` section.
+#[derive(Serialize)]
+struct DownloadConfigFileWrite<'a> {
+    download: ConfigToml<'a>,
+}
+
+/// Private wrapper for deserializing `Config` from a `[download]` section.
+#[derive(Deserialize)]
+struct DownloadConfigFileRead {
+    download: Config,
+}
+
 /// The `Config` struct holds the configuration information for the Ambient Weather API.
 #[derive(Clone, PartialEq, Eq, Deserialize)]
 pub struct Config {
@@ -111,10 +123,12 @@ impl Config {
             path: filename.to_string(),
             source: e,
         })?;
-        let config: Self = toml::from_str(&config_str).map_err(|e| ConfigError::Parse {
-            path: filename.to_string(),
-            source: e,
-        })?;
+        let wrapper: DownloadConfigFileRead =
+            toml::from_str(&config_str).map_err(|e| ConfigError::Parse {
+                path: filename.to_string(),
+                source: e,
+            })?;
+        let config = wrapper.download;
 
         log::debug!("Read configuration from {filename}: {config:?}");
 
@@ -227,7 +241,8 @@ impl Config {
             log::debug!("Created new configuration file {filename}");
         }
 
-        let config_str = toml::to_string(&ConfigToml::from(self))
+        let wrapper = DownloadConfigFileWrite { download: ConfigToml::from(self) };
+        let config_str = toml::to_string(&wrapper)
             .map_err(|e| ConfigError::Serialize(e.to_string()))?;
         std::fs::write(filename, &config_str).map_err(|e| ConfigError::Write {
             path: filename.to_string(),
@@ -266,7 +281,8 @@ impl Config {
     pub fn new_config_file(filename: &str) -> Result<(), ConfigError> {
         let config = Self::new();
 
-        let config_str = toml::to_string(&ConfigToml::from(&config))
+        let wrapper = DownloadConfigFileWrite { download: ConfigToml::from(&config) };
+        let config_str = toml::to_string(&wrapper)
             .map_err(|e| ConfigError::Serialize(e.to_string()))?;
         std::fs::write(filename, config_str).map_err(|e| ConfigError::Write {
             path: filename.to_string(),
