@@ -224,19 +224,48 @@ ambient_download --config-file /path/to/ambient_download.toml weather
 Generate a template with `newconfig`, then fill in your credentials:
 
 ```toml
-app_key = ""
-api_key = ""
-mac_address = ""
-output_folder = "."
+[download]
+app_key          = ""
+api_key          = ""
+mac_address      = ""
+output_folder    = "."
 filename_pattern = "%Y-%m-%d.json"
-station_name = ""
-tz_name = "America/Vancouver"   # auto-detected from system; change as needed
-detail_level = 1
-limit = 288
-sleep_time = 10
+station_name     = ""
+tz_name          = "America/Vancouver"   # auto-detected from system; change as needed
+detail_level     = 1
+limit            = 288
+sleep_time       = 10
 ```
 
 All fields are optional within the file; omitted fields fall back to their defaults. Store the file outside your project directory and restrict its permissions (see [Security](#security)).
+
+### Sharing the config file with ambient_process
+
+The same file can hold settings for `ambient_process` under a `[process.convert]` section. `ambient_download` ignores sections it doesn't own:
+
+```toml
+[download]
+app_key          = ""
+api_key          = ""
+mac_address      = "AA:BB:CC:DD:EE:FF"
+output_folder    = "/path/to/weather"
+filename_pattern = "%Y/%Y-%m-%d.json"
+station_name     = "home"
+tz_name          = "America/Vancouver"
+detail_level     = 1
+limit            = 288
+sleep_time       = 30
+
+[process.convert]
+fields = ["date", "temp_out", "humidity_out", "wind_speed", "wind_gust",
+          "wind_dir", "baro_rel", "solar_radiation", "uv",
+          "hourly_rain", "daily_rain", "temp_in", "humidity_in"]
+format = "csv"
+units  = "imperial"
+# output = "weather.csv"
+```
+
+See the [`ambient_process` README](../ambient_process/README.md) for full details on the `[process.convert]` options.
 
 ---
 

@@ -105,6 +105,34 @@ units  = "imperial"
 
 Use the [`fields` subcommand](#fields-subcommand) to discover which fields are actually populated by your station before building this list.
 
+The `[process.convert]` section can live in the same file as `[download]` settings for `ambient_download`, giving you a single config file for both tools:
+
+```toml
+[download]
+app_key          = ""
+api_key          = ""
+mac_address      = "AA:BB:CC:DD:EE:FF"
+output_folder    = "/path/to/weather"
+filename_pattern = "%Y/%Y-%m-%d.json"
+station_name     = "home"
+tz_name          = "America/Vancouver"
+detail_level     = 1
+limit            = 288
+sleep_time       = 30
+
+[process.convert]
+fields = [
+  "date",
+  "temp_out",
+  "humidity_out",
+  "wind_speed",
+  "daily_rain",
+]
+format = "csv"
+units  = "imperial"
+# output = "weather.csv"
+```
+
 ---
 
 ### `convert` subcommand
