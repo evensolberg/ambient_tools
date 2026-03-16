@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.2] - 2026-03-15
+
+### Miscellaneous Tasks
+
+- Rename default config file from `ambient_download.toml` to `ambient_tools.toml`
+- Bump ambient_download to v0.9.5, ambient_process and shared to v0.4.4
+
 ## [0.6.1] - 2026-03-16
 
 ### Features
