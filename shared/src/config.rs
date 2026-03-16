@@ -334,3 +334,78 @@ impl Default for Config {
         }
     }
 }
+
+// ---------------------------------------------------------------------------
+// ProcessConfig — used by `ambient_process`
+// ---------------------------------------------------------------------------
+
+/// Per-subcommand config for `ambient_process convert`.
+#[derive(Debug, Clone, Deserialize, Default)]
+pub struct ConvertConfig {
+    pub fields: Option<Vec<String>>,
+    pub format: Option<String>,
+    pub units: Option<String>,
+    pub output: Option<String>,
+    pub from: Option<String>,
+    pub to: Option<String>,
+}
+
+/// Per-subcommand config for `ambient_process reorganize` (reserved for future use).
+#[derive(Debug, Clone, Deserialize, Default)]
+pub struct ReorganizeConfig {}
+
+/// The `[process]` section of an `ambient_download.toml` config file.
+#[derive(Debug, Clone, Deserialize, Default)]
+pub struct ProcessConfig {
+    pub convert: Option<ConvertConfig>,
+    pub reorganize: Option<ReorganizeConfig>,
+}
+
+/// Private wrapper for deserializing only the `[process]` section.
+#[derive(Deserialize)]
+struct ProcessConfigFile {
+    #[serde(default)]
+    process: ProcessConfig,
+}
+
+impl ProcessConfig {
+    /// Load the `[process]` section from a TOML config file.
+    /// Returns `ProcessConfig::default()` if the section is absent.
+    ///
+    /// # Errors
+    ///
+    /// If the file cannot be read or contains invalid TOML.
+    pub fn from_file(path: &str) -> Result<Self, ConfigError> {
+        let content = std::fs::read_to_string(path).map_err(|e| ConfigError::Read {
+            path: path.to_string(),
+            source: e,
+        })?;
+        let wrapper: ProcessConfigFile =
+            toml::from_str(&content).map_err(|e| ConfigError::Parse {
+                path: path.to_string(),
+                source: e,
+            })?;
+        Ok(wrapper.process)
+    }
+}
+
+/// Resolve the config file path using the priority order:
+///   1. Explicit path (from a `--config` flag)
+///   2. `AMBIENT_WEATHER_CONFIG` environment variable
+///   3. `ambient_download.toml` in the current working directory
+#[must_use]
+pub fn resolve_config_path(explicit: Option<&str>) -> Option<std::path::PathBuf> {
+    if let Some(p) = explicit {
+        return Some(std::path::PathBuf::from(p));
+    }
+    if let Ok(p) = std::env::var("AMBIENT_WEATHER_CONFIG") {
+        if !p.is_empty() {
+            return Some(std::path::PathBuf::from(p));
+        }
+    }
+    let cwd = std::path::PathBuf::from("ambient_download.toml");
+    if cwd.exists() {
+        return Some(cwd);
+    }
+    None
+}

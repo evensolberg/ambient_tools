@@ -8,8 +8,58 @@ use super::speed::WindSpeed;
 use super::temperature::Temperature;
 use super::units::SystemOfUnits;
 
-use chrono::{DateTime, Local};
+use chrono::{DateTime, Local, TimeZone};
 use serde::{Deserialize, Serialize};
+
+/// Deserialize an optional `WindDirection` that may arrive as a plain numeric degree
+/// value (older API: `"winddir": 95`) or as the serde-derived enum representation.
+fn deser_opt_wind_direction<'de, D>(d: D) -> Result<Option<WindDirection>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    #[derive(Deserialize)]
+    #[serde(untagged)]
+    enum DegreesOrDir {
+        Degrees(f64),
+        Dir(WindDirection),
+    }
+
+    match Option::<DegreesOrDir>::deserialize(d)? {
+        None => Ok(None),
+        Some(DegreesOrDir::Degrees(v)) => Ok(Some(WindDirection::from_degrees(v as f32))),
+        Some(DegreesOrDir::Dir(dir)) => Ok(Some(dir)),
+    }
+}
+
+/// Deserialize an optional datetime that may arrive as an RFC 3339 string **or**
+/// as a Unix millisecond integer (older Ambient Weather API responses).
+fn deser_opt_datetime_or_millis<'de, D>(d: D) -> Result<Option<DateTime<Local>>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    #[derive(Deserialize)]
+    #[serde(untagged)]
+    enum DateOrMillis {
+        Millis(u64),
+        Str(String),
+    }
+
+    match Option::<DateOrMillis>::deserialize(d)? {
+        None => Ok(None),
+        Some(DateOrMillis::Str(s)) => DateTime::parse_from_rfc3339(&s)
+            .map(|dt| Some(dt.with_timezone(&Local)))
+            .map_err(serde::de::Error::custom),
+        Some(DateOrMillis::Millis(ms)) => {
+            let secs = (ms / 1000) as i64;
+            let nanos = u32::try_from((ms % 1000) * 1_000_000).unwrap_or(0);
+            Local
+                .timestamp_opt(secs, nanos)
+                .single()
+                .map(Some)
+                .ok_or_else(|| serde::de::Error::custom(format!("invalid timestamp {ms}")))
+        }
+    }
+}
 
 #[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
 pub struct WeatherDataPoint {
@@ -51,19 +101,35 @@ pub struct WeatherDataPoint {
     pub rain_sensor_battery_status: Option<BatteryStatus>,
 
     /// Instantaneous wind direction (0-360º)
-    #[serde(rename(deserialize = "winddir"))]
+    #[serde(
+        rename(deserialize = "winddir"),
+        default,
+        deserialize_with = "deser_opt_wind_direction"
+    )]
     pub wind_direction: Option<WindDirection>,
 
     /// Average wind direction, 2 minute average (0-360º)
-    #[serde(rename(deserialize = "winddir_avg2m"))]
+    #[serde(
+        rename(deserialize = "winddir_avg2m"),
+        default,
+        deserialize_with = "deser_opt_wind_direction"
+    )]
     pub wind_direction_2min_average: Option<WindDirection>,
 
     /// Average wind direction, 10 minute average (0-360º)
-    #[serde(rename(deserialize = "winddir_avg10m"))]
+    #[serde(
+        rename(deserialize = "winddir_avg10m"),
+        default,
+        deserialize_with = "deser_opt_wind_direction"
+    )]
     pub wind_direction_10min_average: Option<WindDirection>,
 
     /// Wind Guest direction (0-360º)
-    #[serde(rename(deserialize = "windgustdir"))]
+    #[serde(
+        rename(deserialize = "windgustdir"),
+        default,
+        deserialize_with = "deser_opt_wind_direction"
+    )]
     pub wind_gust_direction: Option<WindDirection>,
 
     /// Windgust `WindSpeed` (mph)
@@ -334,8 +400,13 @@ pub struct WeatherDataPoint {
     #[serde(rename(deserialize = "dewPointin"))]
     pub dew_point_inside: Option<Temperature>,
 
-    /// Last time hourlyrainin > 0 (UTC, calculated on server)
-    #[serde(rename(deserialize = "lastRain"))]
+    /// Last time hourlyrainin > 0 (UTC, calculated on server).
+    /// May be an RFC 3339 string or a Unix millisecond integer depending on API version.
+    #[serde(
+        rename(deserialize = "lastRain"),
+        default,
+        deserialize_with = "deser_opt_datetime_or_millis"
+    )]
     pub last_rain: Option<DateTime<Local>>,
 
     /// Local time of last update
@@ -347,28 +418,29 @@ pub struct WeatherDataPoint {
     pub last_24_hour_rain: Option<Length>,
 
     /// AQI (Air Quality Index) derived from PM10 - 24 hour running average
+    /// u16 because AQI can exceed 255 during wildfire/smoke events (scale goes to 500+).
     #[serde(rename(deserialize = "aqi_pm10_24h_aqin"))]
-    pub air_quality_index_pm10_24h: Option<u8>,
+    pub air_quality_index_pm10_24h: Option<u16>,
 
     /// AQI (Air Quality Index) derived from PM10
     #[serde(rename(deserialize = "aqi_pm10_aqin"))]
-    pub air_quality_index_pm10_indoor: Option<u8>,
+    pub air_quality_index_pm10_indoor: Option<u16>,
 
     /// AQI (Air Quality Index) derived from PM2.5 - 24 hour running average
     #[serde(rename(deserialize = "aqi_pm25_24h_aqin"))]
-    pub air_quality_index_pm25_24h: Option<u8>,
+    pub air_quality_index_pm25_24h: Option<u16>,
 
     /// AQI (Air Quality Index) derived from PM2.5 indoor
     #[serde(rename(deserialize = "aqi_pm25_aqin"))]
-    pub air_quality_index_pm25: Option<u8>,
+    pub air_quality_index_pm25: Option<u16>,
 
     /// AQI derived from PM25 indoor
     #[serde(rename(deserialize = "aqi_pm25_in"))]
-    pub air_quality_index_pm25_indoor: Option<u8>,
+    pub air_quality_index_pm25_indoor: Option<u16>,
 
     /// AQI derived from PM25 IN - 24 hour running average
     #[serde(rename(deserialize = "aqi_pm25_in_24h"))]
-    pub air_quality_index_pm25_24h_indoor: Option<u8>,
+    pub air_quality_index_pm25_24h_indoor: Option<u16>,
 
     /// Leak detector battery 1 OK/Low Indication - 1=OK, 0=Low (Meteobridge Users: 1=Low, 0=OK)
     #[serde(rename(deserialize = "batt_leak1"))]
@@ -654,6 +726,7 @@ pub struct WeatherDataPoint {
     pub timezone: Option<String>,
 
     pub passkey: Option<String>,
+    #[serde(default, deserialize_with = "deser_opt_datetime_or_millis")]
     pub time: Option<DateTime<Local>>,
     pub loc: Option<String>,
     pub date: Option<DateTime<Local>>,

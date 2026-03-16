@@ -2,12 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.0] - 2026-03-15
+
+### Features
+
+- Add config file support to ambient_process (`[process.convert]` section in TOML)
+- Add `fields` subcommand to list populated fields in TOML array syntax
+- Extend ALL_FIELDS with extra temperature/humidity sensors, last_rain, CO2, and relay channels
+- Fix deserialization of older Ambient Weather API JSON (wind direction as degrees, timestamps as milliseconds)
+- Fix AQI field overflow — changed from u8 to u16 (supports values up to 65535)
+- Fix LeakDetector deserialization for plain integer values
+
+### Miscellaneous Tasks
+
+- Bump ambient_process and shared to v0.4.2
+
 ## [0.5.1] - 2026-03-09
 
 ### Features
 
-- Add `reorganize` subcommand to ambient_process (v0.3.0)
-- Extract `format_output_filename` into shared::pipeline::filename
+- Add reorganize subcommand to ambient_process
+
+### Miscellaneous Tasks
+
+- Bump ambient_process to v0.3.0
 
 ## [0.5.0] - 2026-03-09
 

@@ -1,10 +1,10 @@
 //! Defines the status codes for the leak detector of the weather station.
 
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 use std::fmt::{self, Display, Formatter};
 
 /// The leak detector status of the weather station.
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Ord, PartialOrd, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Ord, PartialOrd, Serialize)]
 pub enum LeakDetector {
     /// Leak detector is OK - no leaks detected.
     OK = 0,
@@ -40,6 +40,27 @@ impl LeakDetector {
             Self::Offline => 2,
             Self::Unknown => 100,
         }
+    }
+}
+
+impl<'de> Deserialize<'de> for LeakDetector {
+    /// Accept an integer (0/1/2) or a string ("0"/"1"/"2") in addition to variant names.
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        use serde::de::Error;
+        let v = serde_json::Value::deserialize(deserializer)?;
+        let n: u8 = match &v {
+            serde_json::Value::Number(n) => u8::try_from(n.as_u64().unwrap_or(100)).unwrap_or(100),
+            serde_json::Value::String(s) => s.parse().unwrap_or(100),
+            _ => {
+                return Err(D::Error::custom(format!(
+                    "unexpected leak detector value: {v}"
+                )))
+            }
+        };
+        Ok(Self::from_number(n))
     }
 }
 
