@@ -1,6 +1,6 @@
 id,title,status,type,priority,tags,created,updated,closed_reason,story_points
 at-0i6,Add automatic sleep time increase based on days to download,closed,feature,1,ambient-download|network,2026-03-08,2026-03-08,"recommended_sleep_for_days() auto-scales when --sleep-time is at default: 6-15d=30s, 16-30d=60s, 31-90d=120s, 91+d=300s; logs the adjustment",
-at-13y,Ambient_process config file,open,feature,2,,2026-03-09,2026-03-15,,
+at-13y,Ambient_process config file,closed,feature,2,,2026-03-09,2026-03-15,Implemented in v0.6.0-v0.6.2; unified ambient_tools.toml with [download] and [process.convert] sections,
 at-1d2,No HTTP request timeout configured,closed,bug,1,robustness|network,2026-03-08,2026-03-08,device.rs now uses reqwest::blocking::Client with 30s timeout instead of one-shot blocking::get(),
 at-1qd,json2csv crate is a non-functional stub,closed,bug,1,maintainability|json2csv,2026-03-08,2026-03-08,Deleted the directory. Not needed.,
 at-3tr,Add TOON export format to ambient_process,closed,feature,2,ambient-process|export|toon,2026-03-08,2026-03-08,Implemented in ambient_process v0.2.0 / workspace v0.5.0,
