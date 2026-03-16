@@ -18,7 +18,7 @@ Cargo.lock
 # Downloaded information
 weather_data/
 .mise.toml
-ambient_download.toml
+ambient_tools.toml
 /mutants.out
 /mutants.out.old
 

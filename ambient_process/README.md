@@ -53,7 +53,7 @@ Options:
   -d, --detail-level <detail>    Output detail level: 0=Quiet 1=Normal 2=Detailed 3=Debug
                                  [default: 1] [env: AMBIENT_WEATHER_DETAIL_LEVEL]
   -c, --config <FILE>            TOML config file. Falls back to AMBIENT_WEATHER_CONFIG
-                                 env var, then ambient_download.toml in cwd.
+                                 env var, then ambient_tools.toml in cwd.
 
 Commands:
   convert     Convert JSON weather files to CSV or TOON
@@ -81,7 +81,7 @@ Config file resolution order (first match wins):
 1. `--config` flag on the subcommand (e.g. `convert -c myfile.toml`)
 2. `--config` flag on the top-level command (e.g. `ambient_process -c myfile.toml convert`)
 3. `AMBIENT_WEATHER_CONFIG` environment variable
-4. `ambient_download.toml` in the current working directory
+4. `ambient_tools.toml` in the current working directory
 
 CLI flags always override config file values when both are present.
 
@@ -331,7 +331,7 @@ Options:
 
 #### Reorganize config file
 
-Use `-c` to point at an existing `ambient_download.toml`. The command reads `filename_pattern`, `output_folder`, `mac_address`, and `station_name` from it. CLI flags override config values when both are provided.
+Use `-c` to point at an existing `ambient_tools.toml`. The command reads `filename_pattern`, `output_folder`, `mac_address`, and `station_name` from it. CLI flags override config values when both are provided.
 
 #### Examples
 
@@ -356,7 +356,7 @@ Reorganize using settings from an existing config file:
 
 ```shell
 ambient_process reorganize \
-  -c ambient_download.toml \
+  -c ambient_tools.toml \
   'data/*.json'
 ```
 

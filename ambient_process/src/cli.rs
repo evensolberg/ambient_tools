@@ -22,9 +22,9 @@ pub fn build_cli() -> Command {
                 .short('c')
                 .long("config")
                 .help(
-                    "TOML config file (ambient_download.toml format). \
+                    "TOML config file (ambient_tools.toml format). \
                      CLI flags override config values. Falls back to \
-                     AMBIENT_WEATHER_CONFIG env var, then ambient_download.toml in cwd.",
+                     AMBIENT_WEATHER_CONFIG env var, then ambient_tools.toml in cwd.",
                 )
                 .action(clap::ArgAction::Set),
         )

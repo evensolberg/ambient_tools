@@ -116,7 +116,7 @@ impl Config {
     ///
     /// ```
     /// use shared::config::Config;
-    /// let config = Config::from_file("ambient_download.toml").expect("Unable to read configuration file.");
+    /// let config = Config::from_file("ambient_tools.toml").expect("Unable to read configuration file.");
     /// ```
     pub fn from_file(filename: &str) -> Result<Self, ConfigError> {
         let config_str = std::fs::read_to_string(filename).map_err(|e| ConfigError::Read {
@@ -233,7 +233,7 @@ impl Config {
     /// ```
     /// use shared::config::Config;
     /// let config = Config::new();
-    /// config.to_file("ambient_download.toml").expect("Unable to write configuration file.");
+    /// config.to_file("ambient_tools.toml").expect("Unable to write configuration file.");
     /// ```
     pub fn to_file(&self, filename: &str) -> Result<(), ConfigError> {
         if !std::path::Path::new(&filename).exists() {
@@ -241,9 +241,11 @@ impl Config {
             log::debug!("Created new configuration file {filename}");
         }
 
-        let wrapper = DownloadConfigFileWrite { download: ConfigToml::from(self) };
-        let config_str = toml::to_string(&wrapper)
-            .map_err(|e| ConfigError::Serialize(e.to_string()))?;
+        let wrapper = DownloadConfigFileWrite {
+            download: ConfigToml::from(self),
+        };
+        let config_str =
+            toml::to_string(&wrapper).map_err(|e| ConfigError::Serialize(e.to_string()))?;
         std::fs::write(filename, &config_str).map_err(|e| ConfigError::Write {
             path: filename.to_string(),
             source: e,
@@ -276,14 +278,16 @@ impl Config {
     ///
     /// ```
     /// use shared::config::Config;
-    /// Config::new_config_file("ambient_download.toml").expect("Unable to create configuration file.");
+    /// Config::new_config_file("ambient_tools.toml").expect("Unable to create configuration file.");
     /// ```
     pub fn new_config_file(filename: &str) -> Result<(), ConfigError> {
         let config = Self::new();
 
-        let wrapper = DownloadConfigFileWrite { download: ConfigToml::from(&config) };
-        let config_str = toml::to_string(&wrapper)
-            .map_err(|e| ConfigError::Serialize(e.to_string()))?;
+        let wrapper = DownloadConfigFileWrite {
+            download: ConfigToml::from(&config),
+        };
+        let config_str =
+            toml::to_string(&wrapper).map_err(|e| ConfigError::Serialize(e.to_string()))?;
         std::fs::write(filename, config_str).map_err(|e| ConfigError::Write {
             path: filename.to_string(),
             source: e,
@@ -370,7 +374,7 @@ pub struct ConvertConfig {
 #[derive(Debug, Clone, Deserialize, Default)]
 pub struct ReorganizeConfig {}
 
-/// The `[process]` section of an `ambient_download.toml` config file.
+/// The `[process]` section of an `ambient_tools.toml` config file.
 #[derive(Debug, Clone, Deserialize, Default)]
 pub struct ProcessConfig {
     pub convert: Option<ConvertConfig>,
@@ -408,7 +412,7 @@ impl ProcessConfig {
 /// Resolve the config file path using the priority order:
 ///   1. Explicit path (from a `--config` flag)
 ///   2. `AMBIENT_WEATHER_CONFIG` environment variable
-///   3. `ambient_download.toml` in the current working directory
+///   3. `ambient_tools.toml` in the current working directory
 #[must_use]
 pub fn resolve_config_path(explicit: Option<&str>) -> Option<std::path::PathBuf> {
     if let Some(p) = explicit {
@@ -419,7 +423,7 @@ pub fn resolve_config_path(explicit: Option<&str>) -> Option<std::path::PathBuf>
             return Some(std::path::PathBuf::from(p));
         }
     }
-    let cwd = std::path::PathBuf::from("ambient_download.toml");
+    let cwd = std::path::PathBuf::from("ambient_tools.toml");
     if cwd.exists() {
         return Some(cwd);
     }

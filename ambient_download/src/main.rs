@@ -73,7 +73,7 @@ fn run() -> Result<()> {
     Ok(())
 }
 
-/// Create a new configuration file from the CLI arguments. The default file name is `ambient_download.toml`.
+/// Create a new configuration file from the CLI arguments. The default file name is `ambient_tools.toml`.
 /// If the file already exists, it is overwritten. The function will attempt to populate the timezone offset in the file.
 /// If the timezone offset cannot be determined, the value is set to `+00:00`.
 /// The function will output an error message if the file cannot be created.
@@ -96,7 +96,7 @@ fn create_new_config_file(cli_args: &clap::ArgMatches, detail_level: DetailLevel
 
     let config_file = subcmd_args
         .get_one::<String>("config-file")
-        .map_or("ambient_download.toml", |file| file);
+        .map_or("ambient_tools.toml", |file| file);
 
     if matches!(config::Config::new_config_file(config_file), Ok(())) {
         log::info!("Created new configuration file {config_file}.");

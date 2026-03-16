@@ -202,13 +202,13 @@ Generates a TOML config file template with all available fields pre-populated. T
 ambient_download newconfig [FILENAME]
 
 Arguments:
-  [FILENAME]  Path for the new config file [default: ambient_download.toml]
+  [FILENAME]  Path for the new config file [default: ambient_tools.toml]
 ```
 
 Example:
 
 ```shell
-ambient_download newconfig /etc/ambient_download.toml
+ambient_download newconfig /etc/ambient_tools.toml
 ```
 
 ---
@@ -218,7 +218,7 @@ ambient_download newconfig /etc/ambient_download.toml
 A config file replaces all command-line flags. Pass it with `--config-file`:
 
 ```shell
-ambient_download --config-file /path/to/ambient_download.toml weather
+ambient_download --config-file /path/to/ambient_tools.toml weather
 ```
 
 Generate a template with `newconfig`, then fill in your credentials:
@@ -324,13 +324,13 @@ The tool is designed to run unattended as a scheduled task. The recommended appr
 Add a line to your crontab (`crontab -e`) to download the previous day's data every day at 01:00:
 
 ```text
-0 1 * * * /path/to/ambient_download --config-file /path/to/ambient_download.toml weather
+0 1 * * * /path/to/ambient_download --config-file /path/to/ambient_tools.toml weather
 ```
 
 To download the previous day's data and organize files by year and month:
 
 ```text
-0 1 * * * /path/to/ambient_download --config-file /path/to/ambient_download.toml weather --filename-pattern '%Y/%m/%Y-%m-%d.json'
+0 1 * * * /path/to/ambient_download --config-file /path/to/ambient_tools.toml weather --filename-pattern '%Y/%m/%Y-%m-%d.json'
 ```
 
 ### Task Scheduler (Windows)
@@ -344,8 +344,8 @@ Use the [Windows Task Scheduler](https://learn.microsoft.com/en-us/windows/win32
 - **Credentials in config files.** Config files contain API keys and Application keys in plaintext. Restrict permissions and keep the file out of version control:
 
   ```shell
-  chmod 600 /path/to/ambient_download.toml
-  echo "ambient_download.toml" >> .gitignore
+  chmod 600 /path/to/ambient_tools.toml
+  echo "ambient_tools.toml" >> .gitignore
   ```
 
 - **Credential redaction in logs.** API keys and Application keys are redacted from all log output and serialized data regardless of the detail level selected.
