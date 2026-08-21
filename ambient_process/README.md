@@ -38,6 +38,10 @@ Build from source using Cargo:
 git clone https://github.com/evensolberg/ambient_tools.git
 cd ambient_tools
 cargo build --release
+
+# or
+
+cargo install --path .
 ```
 
 The compiled binary is placed at `target/release/ambient_process`.
